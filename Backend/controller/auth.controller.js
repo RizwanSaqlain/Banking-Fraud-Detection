@@ -220,15 +220,15 @@ export const login = async (req, res) => {
 
     try {
       const risk = evaluateContext(context, user);
-      if (risk >= 5) {
-        return res
-          .status(403)
-          .json({ error: "Suspicious activity, login blocked" });
-      } else if (risk >= 3) {
-        return res
-          .status(200)
-          .json({ message: "2FA required", require2FA: true });
-      }
+      // if (risk >= 5) {
+      //   return res
+      //     .status(403)
+      //     .json({ error: "Suspicious activity, login blocked" });
+      // } else if (risk >= 4) {
+      //   return res
+      //     .status(200)
+      //     .json({ message: "2FA required", require2FA: true });
+      // }
       // const risk = 0;
       user.lastLogin = new Date();
       await updateContextProfile(user, context, risk);
@@ -246,6 +246,12 @@ export const login = async (req, res) => {
       user: {
         ...user._doc,
         password: undefined,
+        contextLogs: undefined,
+        trustedIPs: undefined,
+        trustedDevices: undefined,
+        locations: undefined,
+        behavioralProfile: undefined,
+        riskScore: undefined,
       },
     });
   } catch (error) {
