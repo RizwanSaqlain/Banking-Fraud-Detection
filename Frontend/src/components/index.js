@@ -4,6 +4,7 @@ import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import LoadingSpinner from "./LoadingSpinner";
 import ProtectedRoute from "./ProtectedRoute";
 import RedirectAuthenticatedUser from "./RedirectAuthenticatedUser";
+import MouseTracker from "./MouseTracker";
 
 export {
   FloatingShape,
@@ -12,4 +13,5 @@ export {
   LoadingSpinner,
   ProtectedRoute,
   RedirectAuthenticatedUser,
+  MouseTracker,
 };

@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import TransactionPage from "./pages/Transaction";
-import BankingPage from "./pages/BankingPage";
 import { useAuthStore } from "./store/authStore";
 import {
   FloatingShape,
   LoadingSpinner,
+  MouseTracker,
   ProtectedRoute,
   RedirectAuthenticatedUser,
 } from "./components";
@@ -17,6 +16,8 @@ import {
   DashboardPage,
   ForgotPasswordPage,
   ResetPasswordPage,
+  TransactionPage,
+  BankingPage,
 } from "./pages";
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
         delay={2}
       />
 
+      <MouseTracker />
 
       <Routes>
         <Route
@@ -105,28 +107,25 @@ function App() {
             </RedirectAuthenticatedUser>
           }
         />
-       
+
         <Route path="*" element={<Navigate to="/" replace />} />
 
-
-
-         
-  <Route
-  path="/transactions"
-  element={
-    <ProtectedRoute>
-      <TransactionPage />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/bankingpage"
-  element={
-    <ProtectedRoute>
-      <BankingPage/>
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <TransactionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bankingpage"
+          element={
+            <ProtectedRoute>
+              <BankingPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       <Toaster />
