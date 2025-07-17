@@ -16,10 +16,10 @@ const router = express.Router();
 // Create a new transaction
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const { amount, recipient, purpose } = req.body;
+    const { amount, recipient, accountNumber, ifsc, purpose, note } = req.body;
 
     // Optional: Basic input check
-    if (!amount || !recipient || !purpose) {
+    if (!amount || !recipient || !accountNumber || !ifsc || !purpose) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -27,7 +27,10 @@ router.post('/', verifyToken, async (req, res) => {
       userId: req.user.id,
       amount,
       recipient,
+      accountNumber,
+      ifsc,
       purpose,
+      note,
       date: new Date(),
       status: 'Success',
     });

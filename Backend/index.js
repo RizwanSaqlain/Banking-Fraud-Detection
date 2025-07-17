@@ -5,7 +5,7 @@ import cors from "cors";
 import { connectDB } from "./db/connectDB.js";
 
 import authRoutes from "./routes/auth.route.js";
-
+import transactionRoutes from "./routes/transaction.route.js";
 // dotenv configuration to load environment variables
 dotenv.config();
 
@@ -23,7 +23,7 @@ app.use(express.json()); // allow us to parse incoming payloads with json body :
 app.use(cookieParser()); // allow us to parse cookies from the request headers
 
 app.use("/api/auth", authRoutes);
-
+app.use('/api/transactions', transactionRoutes);
 app.listen(PORT, () => {
   connectDB();
   console.log(`Server is running at ${PORT}`);

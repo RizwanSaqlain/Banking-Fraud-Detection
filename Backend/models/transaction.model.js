@@ -26,9 +26,21 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  accountNumber: {
+    type: String,
+    required: true,
+  },
+  ifsc: {
+    type: String,
+    required: true,
+  },
   purpose: {
     type: String,
     required: true,
+  },
+  note: {
+    type: String,
+    required: false,
   },
   amount: {
     type: Number,
