@@ -5,6 +5,8 @@ import DashboardPage from "./DashboardPage";
 import ForgotPasswordPage from "./ForgotPasswordPage";
 import ResetPasswordPage from "./ResetPasswordPage";
 import ServicePage from "./ServicePage";
+import TransactionPage from "./Transaction";
+import BankingPage from "./BankingPage";
 
 export {
   DashboardPage,
@@ -14,4 +16,6 @@ export {
   ForgotPasswordPage,
   ResetPasswordPage,
   ServicePage,
+  TransactionPage,
+  BankingPage,
 };
