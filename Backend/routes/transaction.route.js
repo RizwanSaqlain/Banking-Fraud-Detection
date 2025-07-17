@@ -24,7 +24,7 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     const newTransaction = new Transaction({
-      userId: req.user.id,
+      userId: req.userId,
       amount,
       recipient,
       accountNumber,

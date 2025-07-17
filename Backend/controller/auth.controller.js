@@ -278,6 +278,9 @@ export const login = async (req, res) => {
 
     try {
       const risk = evaluateContext(context, user);
+
+      // Here you can implement your risk evaluation logic
+      // For example, if risk is high, you can block the login or require additional verification
       // if (risk >= 5) {
       //   return res
       //     .status(403)
@@ -288,6 +291,7 @@ export const login = async (req, res) => {
       //     .json({ message: "2FA required", require2FA: true });
       // }
       // const risk = 0;
+      
       user.lastLogin = new Date();
       await updateContextProfile(user, context, risk);
       await user.save();
