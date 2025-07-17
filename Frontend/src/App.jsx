@@ -4,6 +4,8 @@ import { Toaster } from "react-hot-toast";
 import TransactionPage from "./pages/Transaction";
 import BankingPage from "./pages/BankingPage";
 import { useAuthStore } from "./store/authStore";
+import ServicePage from "./pages/ServicePage";
+import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import {
   FloatingShape,
   LoadingSpinner,
@@ -124,6 +126,24 @@ function App() {
   element={
     <ProtectedRoute>
       <BankingPage/>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/service"
+  element={
+    <ProtectedRoute>
+      <ServicePage/>
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/transaction-history"
+  element={
+    <ProtectedRoute>
+     <TransactionHistoryPage/>
     </ProtectedRoute>
   }
 />
