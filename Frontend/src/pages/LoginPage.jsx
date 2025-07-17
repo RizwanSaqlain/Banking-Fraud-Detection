@@ -7,13 +7,13 @@ import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
 import useContextData from "../hooks/UseContextData";
-
+import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const { context, handleKeyDown } = useContextData();
   const [captcha, setCaptcha] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const Navigate = useNavigate();
   const { login, error, isLoading } = useAuthStore();
 
   const handleCaptcha = (value) => setCaptcha(value);
@@ -23,6 +23,7 @@ const LoginPage = () => {
     try {
       await login(email, password, context, captcha);
       toast.success("Logged in successfully!");
+      Navigate("/bankingpage");
     } catch (error) {
       console.error("Login failed:", error);
     }
