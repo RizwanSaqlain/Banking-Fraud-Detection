@@ -124,16 +124,24 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { CheckCircle, XCircle, ArrowRight, DollarSign, Send, Zap } from "lucide-react"
+import { LogOut } from "lucide-react"
+import { motion } from "framer-motion"
+import { useAuthStore } from "../store/authStore"
+import { toast } from "react-hot-toast"
 
 const TransactionPage = () => {
   const [formData, setFormData] = useState({
     amount: "",
     recipient: "",
+    accountNumber: "",
+    ifsc: "",
     purpose: "",
+    note: "",
   })
   const [status, setStatus] = useState("")
   const [error, setError] = useState("")
   const [animationStep, setAnimationStep] = useState(0)
+  const { logout } = useAuthStore();
 
   // Animation cycle for the left side
   useEffect(() => {
@@ -161,15 +169,37 @@ const TransactionPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       setStatus("Transaction Successful")
-      setFormData({ amount: "", recipient: "", purpose: "" })
+      setFormData({ amount: "", recipient: "", accountNumber: "", ifsc: "", purpose: "", note: "" })
     } catch (err) {
       console.error(err)
       setError("Transaction Failed")
     }
   }
+  const handleLogout = () => {
+    try {
+      logout();
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center overflow-auto">
+      {/* Logout Button - Top Right */}
+      <div className="absolute top-6 right-8 z-20">
+        <motion.button
+          whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(59,130,246,0.15)" }}
+          whileTap={{ scale: 0.96 }}
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="hidden sm:inline">Logout</span>
+        </motion.button>
+      </div>
       <div className="max-w-6xl w-full grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Animation/Illustration */}
         <div className="relative flex flex-col items-center justify-center p-8 lg:p-12">
@@ -277,7 +307,9 @@ const TransactionPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Recipient Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Recipient Name <span className="text-red-500" title="Required">*</span>
+                </label>
                 <input
                   type="text"
                   name="recipient"
@@ -288,9 +320,38 @@ const TransactionPage = () => {
                   className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount (₹)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Account Number <span className="text-red-500" title="Required">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="accountNumber"
+                  value={formData.accountNumber}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. 1234567890"
+                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  IFSC Code <span className="text-red-500" title="Required">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="ifsc"
+                  value={formData.ifsc}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. SBIN0001234"
+                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white uppercase"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount (₹) <span className="text-red-500" title="Required">*</span>
+                </label>
                 <input
                   type="number"
                   name="amount"
@@ -301,9 +362,10 @@ const TransactionPage = () => {
                   className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Purpose</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Purpose <span className="text-red-500" title="Required">*</span>
+                </label>
                 <textarea
                   name="purpose"
                   value={formData.purpose}
@@ -312,6 +374,17 @@ const TransactionPage = () => {
                   placeholder="e.g. Bill Payment / Rent / Gift"
                   rows={3}
                   className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Note (optional)</label>
+                <input
+                  type="text"
+                  name="note"
+                  value={formData.note}
+                  onChange={handleChange}
+                  placeholder="Add a note (optional)"
+                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 />
               </div>
 

@@ -14,7 +14,7 @@ export const verifyToken = (req, res, next) => {
     if (!decoded) {
       return res.status(400).json({ message: "Invalid token." });
     }
-    req.userId = decoded.userId; // Attach the decoded user info to the request object
+    req.user = { id: decoded.userId }; // Attach the decoded user info to the request object
     next(); // Call the next middleware or route handler
   } catch (error) {
     console.error("Token verification error:", error);

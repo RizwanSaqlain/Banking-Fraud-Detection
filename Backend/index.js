@@ -24,7 +24,7 @@ app.use(express.json()); // allow us to parse incoming payloads with json body :
 app.use(cookieParser()); // allow us to parse cookies from the request headers
 
 app.use("/api/auth", authRoutes);
-app.use("/api/transactions", transactionRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 app.listen(PORT, () => {
   connectDB();

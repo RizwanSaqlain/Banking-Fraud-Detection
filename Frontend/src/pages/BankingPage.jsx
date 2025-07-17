@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Banknote, ShieldCheck, Send, ArrowRight } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 
@@ -19,30 +20,33 @@ const BankingPage = () => {
   };
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Hero Section */}
-
-      <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+      {/* Logout Button - Top Right */}
+      <div className="absolute top-6 right-8 z-20">
+        <motion.button
+          whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(59,130,246,0.15)" }}
+          whileTap={{ scale: 0.96 }}
           onClick={handleLogout}
-          className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-violet-600 text-white 
-				font-bold rounded-lg shadow-lg hover:from-blue-600 hover:to-violet-700
-				 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+          title="Logout"
         >
-          Logout
+          <LogOut className="w-5 h-5" />
+          <span className="hidden sm:inline">Logout</span>
         </motion.button>
+      </div>
       <header className="bg-gradient-to-br from-blue-800 to-violet-900 text-white py-20 px-8 text-center">
         <h1 className="text-5xl font-bold mb-4">🏦 Welcome to MyBank</h1>
         <p className="text-lg max-w-2xl mx-auto">
           Secure. Smart. Simple. Manage your money with confidence.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col sm:flex-row sm:justify-center gap-3 items-center">
           <Link
             to="/transactions"
             className="inline-flex items-center bg-white text-blue-700 font-semibold px-6 py-3 rounded-full hover:bg-blue-100 transition"
           >
-            💸 Make a Transaction <ArrowRight className="ml-2" />
+             Make a Transaction <ArrowRight className="ml-2" />
           </Link>
+          <Link to="/service" className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl font-medium shadow hover:bg-blue-200 transition-all border border-blue-200">Service</Link>
+          <Link to="/transaction-history" className="px-4 py-2 bg-purple-100 text-purple-700 rounded-xl font-medium shadow hover:bg-purple-200 transition-all border border-purple-200">Transaction History</Link>
         </div>
       </header>
 
