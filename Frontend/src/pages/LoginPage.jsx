@@ -3,21 +3,25 @@ import { motion } from "framer-motion";
 import { Input } from "../components";
 import { Lock, Mail, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
 import useContextData from "../hooks/UseContextData";
 
 const LoginPage = () => {
   const { context, handleKeyDown } = useContextData();
+  const [captcha, setCaptcha] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { login, error, isLoading } = useAuthStore();
 
+  const handleCaptcha = (value) => setCaptcha(value);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password, context);
+      await login(email, password, context, captcha);
       toast.success("Logged in successfully!");
     } catch (error) {
       console.error("Login failed:", error);
@@ -71,6 +75,11 @@ const LoginPage = () => {
           </motion.button>
         </form>
       </div>
+      <ReCAPTCHA
+        className="mx-auto mb-4 w-fit"
+        sitekey="6Lem2HArAAAAAGpEIecDPyOEul3BJuwdMal32AgL"
+        onChange={handleCaptcha}
+      />
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
         <p className="text-sm text-gray-400">
           Don't have an account?{" "}

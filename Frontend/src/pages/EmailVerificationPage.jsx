@@ -4,12 +4,38 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
 
+const RESEND_TIMEOUT = 60; // seconds
+
 const EmailVerificationPage = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
-    const { verifyEmail, isLoading , error } = useAuthStore();
+  const { user, verifyEmail, isLoading, error, resendVerificationCode } =
+    useAuthStore();
+
+  const [timer, setTimer] = useState(RESEND_TIMEOUT);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCanResend(true);
+    }
+  }, [timer]);
+
+  const handleResend = async () => {
+    try {
+      await resendVerificationCode(user.email);
+      toast.success("Verification code resent!");
+      setTimer(RESEND_TIMEOUT);
+      setCanResend(false);
+    } catch (err) {
+      toast.error("Failed to resend code.");
+    }
+  };
 
   const handleChange = (index, value) => {
     const newCode = [...code];
@@ -43,11 +69,11 @@ const EmailVerificationPage = () => {
     event.preventDefault();
     const verificationCode = code.join("");
     try {
-        await verifyEmail(verificationCode);
-        navigate("/");
-        toast.success("Email verified successfully!");
+      await verifyEmail(verificationCode);
+      navigate("/");
+      toast.success("Email verified successfully!");
     } catch (error) {
-        console.error("Email verification failed:", error);
+      console.error("Email verification failed:", error);
     }
   };
 
@@ -69,9 +95,10 @@ const EmailVerificationPage = () => {
         <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text mb-6">
           Verify Your Email
         </h2>
-        <p className="text-center text-gray-400 mb-6">
+        <p className="text-center text-gray-400 mb-2">
           Enter the verification code sent to your email.
         </p>
+        <p className="text-center mb-6 text-violet-500">{user.email}</p>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex justify-between">
             {code.map((digit, index) => (
@@ -90,6 +117,21 @@ const EmailVerificationPage = () => {
                 className="w-12 h-12 text-center text-2xl bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             ))}
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm text-gray-400">
+              {canResend
+                ? "Didn't receive the code?"
+                : `Resend available in ${timer}s`}
+            </span>
+            <button
+              type="button"
+              className={`ml-2 text-blue-400 font-semibold hover:underline disabled:text-gray-500`}
+              onClick={handleResend}
+              disabled={!canResend}
+            >
+              Resend
+            </button>
           </div>
           {error && <p className="text-red-500 text-sm pb-2">{error}</p>}
           <motion.button

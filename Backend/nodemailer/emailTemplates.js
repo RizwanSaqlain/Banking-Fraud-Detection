@@ -135,3 +135,39 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </body>
 </html>
 `;
+
+export const ACCOUNT_DELETION_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Account Deletion Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #2b7fff, #8e51ff); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">Account Deleted Successfully</h1>
+  </div>
+
+  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hi <strong>{name}</strong>,</p>
+    <p>We’re writing to confirm that your account has been permanently deleted from our platform.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <div style="background-color: #8e51ff; color: white; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; display: inline-block; text-align: center; font-size: 26px;">
+        🗑️
+      </div>
+    </div>
+
+    <p>All your data has been securely removed and will no longer be accessible. If this was a mistake or you wish to return, you’re always welcome to create a new account with us.</p>
+
+    <p>We’d like to thank you for your time with us. If there’s anything we could’ve done better, feel free to share your feedback.</p>
+
+    <p>Wishing you the best ahead,<br>The Auth App Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>
+`;

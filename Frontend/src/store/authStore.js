@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import axios from "axios";
 
-const API_URL = import.meta.env.MODE === "development" ? "http://localhost:5000/api/auth" : "/api/auth";
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/auth"
+    : "/api/auth";
 
 axios.defaults.withCredentials = true; // Enable sending cookies with requests
 
@@ -13,7 +16,7 @@ export const useAuthStore = create((set) => ({
   isCheckingAuth: true,
   message: null,
 
-  signup: async (name, email, password, context) => {
+  signup: async (name, email, password, context, captcha) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL}/signup`, {
@@ -21,6 +24,7 @@ export const useAuthStore = create((set) => ({
         email,
         password,
         context, // Pass the context
+        captcha, // Pass the captcha
       });
       set({
         user: response.data.user,
@@ -51,6 +55,28 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       set({
         error: error.response?.data?.message || "Email verification failed",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  resendVerificationCode: async (email) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/resend-verification`, {
+        email,
+      });
+      set({
+        isLoading: false,
+        error: null,
+        message:
+          response.data.message || "Verification code resent successfully",
+      });
+    } catch (error) {
+      set({
+        error:
+          error.response?.data?.message || "Failed to resend verification code",
         isLoading: false,
       });
       throw error;
@@ -97,13 +123,14 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  login: async (email, password, context) => {
+  login: async (email, password, context, captcha) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL}/login`, {
         email,
         password,
         context, // Pass the context
+        captcha,
       });
       set({
         user: response.data.user,
@@ -158,5 +185,24 @@ export const useAuthStore = create((set) => ({
       });
       throw error;
     }
-  }
+  },
+
+  deleteAccount: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await axios.delete(`${API_URL}/delete-account`);
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Account deletion failed",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
 }));

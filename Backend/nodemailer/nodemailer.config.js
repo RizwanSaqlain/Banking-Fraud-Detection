@@ -6,9 +6,8 @@ dotenv.config();
 const USER = process.env.MAIL_USER;
 const PASS = process.env.MAIL_PASS;
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
+const transporter = nodemailer.createTransport({
+  service: "gmail", // or smtp.yourdomain.com
   auth: {
     user: USER,
     pass: PASS,

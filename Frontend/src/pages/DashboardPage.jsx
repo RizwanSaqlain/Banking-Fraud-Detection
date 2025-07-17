@@ -2,9 +2,12 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { formatDate } from "../utils/date";
 import { toast } from "react-hot-toast";
+import ContextStatus from "../components/ContextStatus";
+import useContextData from "../hooks/UseContextData";
 
 const DashboardPage = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, deleteAccount } = useAuthStore();
+  const { context } = useContextData();
 
   const handleLogout = () => {
     try {
@@ -14,6 +17,25 @@ const DashboardPage = () => {
       console.error("Logout failed:", error);
       toast.error("Logout failed. Please try again.");
     }
+  };
+
+  const handleDeleteAccount = () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    deleteAccount()
+      .then(() => {
+        toast.success("Account deleted successfully!");
+        // Optionally redirect to home or login page
+      })
+      .catch((error) => {
+        console.error("Account deletion failed:", error);
+        toast.error("Account deletion failed. Please try again.");
+      });
   };
 
   return (
@@ -70,7 +92,7 @@ const DashboardPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="mt-4"
+        className="my-4 gap-2 flex flex-col"
       >
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -82,7 +104,18 @@ const DashboardPage = () => {
         >
           Logout
         </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleDeleteAccount}
+          className="w-full py-3 px-4  text-white 
+				font-bold rounded-lg shadow-lg bg-red-500 hover:bg-red-600
+				 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+        >
+          Delete Account
+        </motion.button>
       </motion.div>
+      <ContextStatus context={context} userProfile={user} />
     </motion.div>
   );
 };

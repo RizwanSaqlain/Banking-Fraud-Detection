@@ -3,6 +3,7 @@ import crypto from "crypto";
 
 import { User } from "../models/user.model.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
+import { verifyCaptcha } from "../utils/verifyCaptcha.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { evaluateContext } from "../utils/contextEvaluator.js";
 import {
@@ -10,14 +11,21 @@ import {
   sendWelcomeEmail,
   sendResetPasswordEmail,
   sendResetSuccessEmail,
+  sendAccountDeletionEmail,
 } from "../nodemailer/emails.js";
 import { updateContextProfile } from "../utils/updateContextProfile.js";
 
 export const signup = async (req, res) => {
-  const { email, password, name, context } = req.body;
+  const { email, password, name, context, captcha } = req.body;
   try {
     if (!email || !password || !name) {
       throw new Error("All fields are required!");
+    }
+
+    if (!captcha) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Captcha is required!" });
     }
 
     const userAlreadyExists = await User.findOne({ email });
@@ -31,12 +39,16 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = generateVerificationCode();
 
+    const isHuman = await verifyCaptcha(captcha);
+    console.log("Captcha verification result:", isHuman);
+    if (!isHuman) return res.status(403).json({ error: "Bot detected" });
+
     const user = new User({
       email,
       password: hashedPassword,
       name,
       verificationToken,
-      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      verificationTokenExpiresAt: Date.now() + 60 * 1000, // 1 minute
       trustedIPs: [context.ip], // Initialize with the current IP
       trustedDevices: [context.device], // Initialize with the current device
       locations: [
@@ -65,7 +77,7 @@ export const signup = async (req, res) => {
     });
 
     await user.save();
-    
+
     // jwt
     generateTokenAndSetCookie(res, user._id);
 
@@ -115,6 +127,41 @@ export const verifyEmail = async (req, res) => {
     });
   } catch (error) {
     console.log("Error verifying email:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const resendVerificationCode = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required!",
+      });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found!" });
+    }
+    if (user.isVerified) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already verified!" });
+    }
+    const verificationToken = generateVerificationCode();
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiresAt = Date.now() + 60 * 1000; // 1 minute
+    await user.save();
+    await sendVerificationEmail(user.email, verificationToken);
+    res.status(200).json({
+      success: true,
+      message: "Verification code resent successfully",
+    });
+  } catch (error) {
+    console.log("Error resending verification code:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -198,17 +245,23 @@ export const resetPassword = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password, context } = req.body;
+  const { email, password, context, captcha } = req.body;
   try {
     if (!email || !password) {
       throw new Error("All fields are required!");
+    }
+
+    if (!captcha) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Captcha is required!" });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid Credentails!" });
+        .json({ success: false, message: "User not found!" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -217,6 +270,11 @@ export const login = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Wrong Password!" });
     }
+
+    // Inside login route:
+    const isHuman = await verifyCaptcha(captcha);
+    console.log("Captcha verification result:", isHuman);
+    if (!isHuman) return res.status(403).json({ error: "Bot detected" });
 
     try {
       const risk = evaluateContext(context, user);
@@ -276,6 +334,27 @@ export const checkAuth = async (req, res) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.error("Error checking authentication:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    await User.deleteOne({ _id: req.userId }); // Use deleteOne instead of remove
+    res.clearCookie("token");
+    await sendAccountDeletionEmail(user.email, user.name);
+    res
+      .status(200)
+      .json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting account:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

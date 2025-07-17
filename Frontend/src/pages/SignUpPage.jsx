@@ -3,11 +3,13 @@ import { motion } from "framer-motion";
 import { Input, PasswordStrengthMeter } from "../components";
 import { Loader, Lock, Mail, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useAuthStore } from "../store/authStore";
 import useContextData from "../hooks/UseContextData";
 
 const SignUpPage = () => {
   const { context, handleKeyDown } = useContextData();
+  const [captcha, setCaptcha] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,11 +17,13 @@ const SignUpPage = () => {
   const { signup, error, isLoading } = useAuthStore();
   const navigate = useNavigate();
 
+  const handleCaptcha = (value) => setCaptcha(value);
+
   const handleSignUp = async (e) => {
     e.preventDefault();
 
     try {
-      await signup(name, email, password, context);
+      await signup(name, email, password, context, captcha);
       navigate("/verify-email");
     } catch (error) {
       console.error("Sign Up failed:", error);
@@ -93,6 +97,11 @@ const SignUpPage = () => {
           </motion.button>
         </form>
       </div>
+      <ReCAPTCHA
+        className="mx-auto mb-4 w-fit"
+        sitekey="6Lem2HArAAAAAGpEIecDPyOEul3BJuwdMal32AgL"
+        onChange={handleCaptcha}
+      />
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
         <p className="text-sm text-gray-400">
           Already have an account?{" "}
