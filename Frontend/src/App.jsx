@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/authStore";
+import ServicePage from "./pages/ServicePage";
+import TransactionHistoryPage from "./pages/TransactionHistoryPage";
 import {
   FloatingShape,
   LoadingSpinner,
@@ -123,6 +125,22 @@ function App() {
           element={
             <ProtectedRoute>
               <BankingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/service"
+          element={
+            <ProtectedRoute>
+              <ServicePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/transaction-history"
+          element={
+            <ProtectedRoute>
+              <TransactionHistoryPage />
             </ProtectedRoute>
           }
         />
