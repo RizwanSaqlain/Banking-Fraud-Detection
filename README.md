@@ -55,6 +55,7 @@ Create a .env file in the Backend directory with the following content:
     MAIL_USER=your_smtp_user
     MAIL_PASS=your_smtp_password
     NODE_ENV=development
+    RECAPTCHA_SECRET_KEY=your_recaptcha_key_here
 
 ### Additional Notes
 - The backend uses JWT for authentication and cookies for session management.
@@ -62,3 +63,15 @@ Create a .env file in the Backend directory with the following content:
 - Update .env with your own credentials for production use.
 
 For more details, see the code in index.js and App.jsx.
+
+## Flask Mouse Analysis Service Setup
+
+If you are using the mouse movement anomaly detection service (`app.py` in `ML-Models`):
+
+1. **Install Python dependencies:**
+   ```sh
+   pip install flask flask-cors pandas joblib scikit-learn
+
+2. **Run the Flask service:**
+    ```sh
+    python app.py

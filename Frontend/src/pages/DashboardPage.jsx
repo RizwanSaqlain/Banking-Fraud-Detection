@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { formatDate } from "../utils/date";
 import { toast } from "react-hot-toast";
@@ -94,6 +95,12 @@ const DashboardPage = () => {
         transition={{ delay: 0.6 }}
         className="my-4 gap-2 flex flex-col"
       >
+        <Link
+          to="/bankingpage"
+          className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-center"
+        >
+          Banking Page
+        </Link>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -104,6 +111,7 @@ const DashboardPage = () => {
         >
           Logout
         </motion.button>
+
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

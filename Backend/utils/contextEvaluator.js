@@ -1,5 +1,7 @@
 export function evaluateContext(context, userProfile) {
-  let riskScore = userProfile.riskScore;
+  // Ensure riskScore is a valid number, default to 0 if not
+  let riskScore = Number(userProfile.riskScore);
+  if (isNaN(riskScore)) riskScore = 0;
 
   if (!userProfile.trustedIPs?.includes(context.ip)) {
     riskScore += 1;
@@ -16,7 +18,6 @@ export function evaluateContext(context, userProfile) {
     console.log("Risk: Login at unusual hour:", loginHour);
   }
 
-  // Fix: Check if context.location and its properties exist before accessing
   let locationMatch = false;
   if (
     context.location &&
@@ -65,6 +66,6 @@ export function evaluateContext(context, userProfile) {
       context.screenFPSDrops
     );
   }
-
+  
   return riskScore;
 }

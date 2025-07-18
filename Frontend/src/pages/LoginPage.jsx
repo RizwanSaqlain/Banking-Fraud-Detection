@@ -9,12 +9,14 @@ import { useAuthStore } from "../store/authStore";
 import useContextData from "../hooks/UseContextData";
 import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
-  const { context, handleKeyDown } = useContextData();
   const [captcha, setCaptcha] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const Navigate = useNavigate();
+  
+  const { context, handleKeyDown } = useContextData();
   const { login, error, isLoading } = useAuthStore();
+
+  const Navigate = useNavigate();
 
   const handleCaptcha = (value) => setCaptcha(value);
 
