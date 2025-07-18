@@ -59,7 +59,7 @@ Create a .env file in the Backend directory with the following content:
 
 ### Additional Notes
 - The backend uses JWT for authentication and cookies for session management.
-- Email features use SMTP (**Ethereal** for testing by default).
+- Email features use SMTP.
 - Update .env with your own credentials for production use.
 
 For more details, see the code in index.js and App.jsx.
