@@ -1,6 +1,7 @@
 import { sendEmail } from "./nodemailer.config.js";
 import {
   ACCOUNT_DELETION_CONFIRMATION_TEMPLATE,
+  NEWDEVICE_LOGIN_ALERT_TEMPLATE,
   PASSWORD_RESET_REQUEST_TEMPLATE,
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
@@ -91,5 +92,33 @@ export const sendAccountDeletionEmail = async (email, name) => {
   } catch (error) {
     console.error("Error sending account deletion email:", error);
     throw new Error("Failed to send account deletion email");
+  }
+};
+
+export const sendNewDeviceLoginAlert = async (
+  email,
+  name,
+  deviceInfo,
+  resetURL
+) => {
+  // const recipent = [{ email }];
+
+  try {
+    const response = await sendEmail(
+      email,
+      "New Device Login Alert",
+      NEWDEVICE_LOGIN_ALERT_TEMPLATE.replace("{name}", name)
+        .replace("{device}", deviceInfo.device)
+        .replace("{browser}", deviceInfo.browser)
+        .replace("{location}", "Delhi, India")
+        .replace("{ip}", deviceInfo.ip)
+        .replace("{time}", new Date().toLocaleString())
+        .replace("{secureLink}", resetURL)
+    );
+
+    console.log("New device login alert email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending new device login alert email:", error);
+    throw new Error("Failed to send new device login alert email");
   }
 };

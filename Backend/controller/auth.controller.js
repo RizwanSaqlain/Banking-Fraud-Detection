@@ -12,6 +12,7 @@ import {
   sendResetPasswordEmail,
   sendResetSuccessEmail,
   sendAccountDeletionEmail,
+  sendNewDeviceLoginAlert,
 } from "../nodemailer/emails.js";
 import { updateContextProfile } from "../utils/updateContextProfile.js";
 
@@ -277,6 +278,22 @@ export const login = async (req, res) => {
     if (!isHuman) return res.status(403).json({ error: "Bot detected" });
 
     try {
+      const isDeviceTrusted = user.trustedDevices?.includes(context.device);
+      if (!isDeviceTrusted) {
+        const resetToken = crypto.randomBytes(20).toString("hex");
+        const resetTokenExpiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiresAt = resetTokenExpiresAt;
+        await user.save();
+        await sendNewDeviceLoginAlert(
+          user.email,
+          user.name,
+          context,
+          `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+        );
+      }
+
       const risk = evaluateContext(context, user);
 
       // Here you can implement your risk evaluation logic
@@ -291,7 +308,7 @@ export const login = async (req, res) => {
       //     .json({ message: "2FA required", require2FA: true });
       // }
       // const risk = 0;
-      
+
       user.lastLogin = new Date();
       await updateContextProfile(user, context, risk);
       await user.save();

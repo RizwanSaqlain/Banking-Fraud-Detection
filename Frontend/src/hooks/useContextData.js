@@ -1,5 +1,6 @@
 // useContextData.js
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import { getBrowserName } from "../utils/getBrowserName";
 
 const useContextData = () => {
   const [context, setContext] = useState({
@@ -8,37 +9,42 @@ const useContextData = () => {
     cursorMovements: [],
     tabSwitches: 0,
     screenFPSDrops: 0,
-    ip: '',
+    ip: "",
     location: null,
     device: navigator.userAgent,
+    language: navigator.language,
+    browser: getBrowserName(),
     screenSize: `${window.innerWidth}x${window.innerHeight}`,
-    loginTime: new Date().toISOString()
+    loginTime: new Date().toISOString(),
   });
 
   // Typing speed tracking
   const handleKeyDown = () => {
     const now = Date.now();
-    setContext(prev => ({
+    setContext((prev) => ({
       ...prev,
-      typingTimestamps: [...prev.typingTimestamps, now]
+      typingTimestamps: [...prev.typingTimestamps, now],
     }));
   };
 
   // Cursor tracking
   useEffect(() => {
     const handleMove = (e) => {
-      setContext(prev => ({
+      setContext((prev) => ({
         ...prev,
-        cursorMovements: [...prev.cursorMovements, {
-          x: e.clientX,
-          y: e.clientY,
-          t: Date.now()
-        }]
+        cursorMovements: [
+          ...prev.cursorMovements,
+          {
+            x: e.clientX,
+            y: e.clientY,
+            t: Date.now(),
+          },
+        ],
       }));
     };
 
-    window.addEventListener('mousemove', handleMove);
-    return () => window.removeEventListener('mousemove', handleMove);
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
   }, []);
 
   // Tab visibility tracking
@@ -46,10 +52,11 @@ const useContextData = () => {
     let switches = 0;
     const handleVisibility = () => {
       if (document.hidden) switches++;
-      setContext(prev => ({ ...prev, tabSwitches: switches }));
+      setContext((prev) => ({ ...prev, tabSwitches: switches }));
     };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   // Screen recording indicator (FPS drop detection)
@@ -61,7 +68,7 @@ const useContextData = () => {
       const now = performance.now();
       if (now - last > 100) drops++;
       last = now;
-      setContext(prev => ({ ...prev, screenFPSDrops: drops }));
+      setContext((prev) => ({ ...prev, screenFPSDrops: drops }));
       requestAnimationFrame(checkFPS);
     };
 
@@ -74,17 +81,17 @@ const useContextData = () => {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const data = await res.json();
-        setContext(prev => ({ ...prev, ip: data.ip }));
+        setContext((prev) => ({ ...prev, ip: data.ip }));
       } catch {}
     };
 
-    navigator.geolocation.getCurrentPosition(pos => {
+    navigator.geolocation.getCurrentPosition((pos) => {
       const loc = {
         latitude: pos.coords.latitude || 0,
-        longitude: pos.coords.longitude || 0
+        longitude: pos.coords.longitude || 0,
       };
-      
-      setContext(prev => ({ ...prev, location: loc }));
+
+      setContext((prev) => ({ ...prev, location: loc }));
     });
     getIP();
   }, []);
@@ -95,7 +102,7 @@ const useContextData = () => {
     if (times.length < 2) return;
     const deltas = times.slice(1).map((t, i) => t - times[i]);
     const avg = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-    setContext(prev => ({ ...prev, typingSpeed: Number(avg.toFixed(2)) }));
+    setContext((prev) => ({ ...prev, typingSpeed: Number(avg.toFixed(2)) }));
   }, [context.typingTimestamps]);
 
   return { context, handleKeyDown };

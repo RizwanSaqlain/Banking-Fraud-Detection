@@ -14,7 +14,7 @@ import Transaction from '../models/transaction.model.js';
 // GET: Fetch all transactions for logged-in user
 export const getUserTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.findById(req.userId).sort({ date: -1 });
+    const transactions = await Transaction.find({userId: req.userId}).sort({ date: -1 });
     res.status(200).json(transactions);
   } catch (err) {
     res.status(500).json({ error: 'Server Error' });

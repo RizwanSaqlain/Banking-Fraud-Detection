@@ -19,10 +19,8 @@ export default function TransactionHistoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(API_URL, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        axios.defaults.withCredentials = true;
+        const res = await axios.get(API_URL);
         setTransactions(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         setError("Failed to fetch transactions");

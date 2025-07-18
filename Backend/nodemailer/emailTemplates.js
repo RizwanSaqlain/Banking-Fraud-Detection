@@ -171,3 +171,46 @@ export const ACCOUNT_DELETION_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 </body>
 </html>
 `;
+
+export const NEWDEVICE_LOGIN_ALERT_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Device Login Detected</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #ff4b2b, #ff416c); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">New Device Login Alert</h1>
+  </div>
+
+  <div style="background-color: #fff8f8; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hi <strong>{name}</strong>,</p>
+    <p>We noticed a login to your account from a new device or location:</p>
+
+    <ul style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+      <li><strong>Device:</strong> {device}</li>
+      <li><strong>Browser:</strong> {browser}</li>
+      <li><strong>Location:</strong> {location}</li>
+      <li><strong>IP Address:</strong> {ip}</li>
+      <li><strong>Time:</strong> {time}</li>
+    </ul>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <div style="background-color: #ff4b2b; color: white; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; display: inline-block; text-align: center; font-size: 28px;">
+        ⚠️
+      </div>
+    </div>
+
+    <p>If this was <strong>you</strong>, no further action is needed.</p>
+    <p>If this wasn't you, please <a href="{secureLink}" style="color: #ff4b2b;">secure your account immediately</a> and change your password.</p>
+
+    <p>Stay safe,<br>The Auth App Security Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>
+`;
