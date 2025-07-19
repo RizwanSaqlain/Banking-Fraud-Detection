@@ -8,6 +8,7 @@ export const getUserTransactions = async (req, res) => {
     const transactions = await Transaction.find({ userId: req.userId }).sort({ date: -1 });
     res.status(200).json(transactions);
   } catch (err) {
+    console.error('Error fetching transactions:', err);
     res.status(500).json({ error: 'Server Error' });
   }
 };
@@ -15,9 +16,15 @@ export const getUserTransactions = async (req, res) => {
 // Create transaction with blockchain (fallback to MongoDB if contract misconfigured)
 export const createTransaction = async (req, res) => {
   try {
-    const { amount, recipient, purpose, accountNumber, ifsc, note } = req.body;
+    const { amount, recipient, accountNumber, ifsc, purpose, note } = req.body;
 
     // 1. Ensure contract is configured
+    // Validate required fields
+    if (!amount || !recipient || !accountNumber || !ifsc || !purpose) {
+      return res.status(400).json({ error: 'All required fields are missing' });
+    }
+    // Check if contract is properly configured
+
     if (!contract?.methods?.createTransaction || typeof contract.methods.createTransaction !== 'function') {
       console.error("Blockchain contract not configured! ABI or address may be wrong.");
       // Fallback: Just save to MongoDB with "No Blockchain" status
@@ -71,7 +78,7 @@ export const createTransaction = async (req, res) => {
 
     // 6. Save transaction to DB with blockchain status
     const newTransaction = new Transaction({
-      userId: req.userId,
+      userId: req.user.id,
       amount,
       recipient,
       accountNumber,
@@ -89,7 +96,8 @@ export const createTransaction = async (req, res) => {
     await newTransaction.save();
     res.status(201).json(cleanBigInt(newTransaction.toObject ? newTransaction.toObject() : newTransaction));
   } catch (err) {
+
     console.error(err);
     res.status(500).json({ error: "Transaction Error: " + err.message });
-  }
+}
 };
