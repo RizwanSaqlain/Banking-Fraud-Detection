@@ -50,7 +50,7 @@ const transactionSchema = new mongoose.Schema({
   },
   chainStatus: {
     type: String,
-    enum: ['Pending', 'Confirmed', 'Failed', 'NotConfigured'],
+    enum: ['Pending', 'Confirmed', 'Failed', 'NotConfigured', 'OffChain', 'OnChain'],
     default: 'Pending',
   },
   blockchainLog: {
