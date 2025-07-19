@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { formatDate } from "../utils/date";
 import { toast } from "react-hot-toast";
 import ContextStatus from "../components/ContextStatus";
-import useContextData from "../hooks/UseContextData";
+import useContextData from "../hooks/useContextData";
 
 const DashboardPage = () => {
   const { user, logout, deleteAccount } = useAuthStore();

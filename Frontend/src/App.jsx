@@ -20,6 +20,7 @@ import {
   ResetPasswordPage,
   TransactionPage,
   BankingPage,
+  ProfilePage,
 } from "./pages";
 
 function App() {
@@ -105,6 +106,14 @@ function App() {
           path="/reset-password/:token"
           element={
               <ResetPasswordPage />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
           }
         />
 

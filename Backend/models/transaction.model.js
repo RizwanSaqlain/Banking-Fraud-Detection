@@ -1,19 +1,3 @@
-// import mongoose from 'mongoose';
-
-// const transactionSchema = new mongoose.Schema({
-//   userId: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'User',
-//     required: true
-//   },
-//   amount: Number,
-//   date: Date,
-//   status: String,
-// });
-
-// const Transaction = mongoose.model('Transaction',transactionSchema );
- 
-// export default Transaction;
 import mongoose from 'mongoose';
 
 const transactionSchema = new mongoose.Schema({
@@ -53,6 +37,25 @@ const transactionSchema = new mongoose.Schema({
   status: {
     type: String,
     default: 'Success',
+  },
+
+  // ✅ NEW FIELDS FOR BLOCKCHAIN
+  txHash: {
+    type: String,
+    required: false, // Optional at first (in case blockchain fails)
+  },
+  validated: {
+    type: Boolean,
+    default: false,
+  },
+  chainStatus: {
+    type: String,
+    enum: ['Pending', 'Confirmed', 'Failed', 'NotConfigured'],
+    default: 'Pending',
+  },
+  blockchainLog: {
+    type: Object,
+    required: false,
   },
 });
 
