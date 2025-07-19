@@ -1,10 +1,13 @@
 import { sendEmail } from "./nodemailer.config.js";
 import {
   ACCOUNT_DELETION_CONFIRMATION_TEMPLATE,
+  NEWDEVICE_LOGIN_ALERT_TEMPLATE,
   PASSWORD_RESET_REQUEST_TEMPLATE,
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
+  SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE,
+  TWO_FACTOR_AUTH_TEMPLATE,
 } from "./emailTemplates.js";
 
 export const sendVerificationEmail = async (email, verificationCode) => {
@@ -91,5 +94,83 @@ export const sendAccountDeletionEmail = async (email, name) => {
   } catch (error) {
     console.error("Error sending account deletion email:", error);
     throw new Error("Failed to send account deletion email");
+  }
+};
+
+export const sendNewDeviceLoginAlert = async (
+  email,
+  name,
+  deviceInfo,
+  resetURL
+) => {
+  // const recipent = [{ email }];
+
+  try {
+    const response = await sendEmail(
+      email,
+      "New Device Login Alert",
+      NEWDEVICE_LOGIN_ALERT_TEMPLATE.replace("{name}", name)
+        .replace("{device}", deviceInfo.device)
+        .replace("{browser}", deviceInfo.browser)
+        .replace("{location}", "Delhi, India")
+        .replace("{ip}", deviceInfo.ip)
+        .replace("{time}", new Date().toLocaleString())
+        .replace("{secureLink}", resetURL)
+    );
+
+    console.log("New device login alert email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending new device login alert email:", error);
+    throw new Error("Failed to send new device login alert email");
+  }
+};
+
+export const sendSuspiciousActivityWarning = async (
+  email,
+  name,
+  context,
+  riskScore
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "⚠️ Suspicious Activity Detected - Login Blocked",
+      SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE.replace("{name}", name)
+        .replace("{device}", context.device)
+        .replace("{browser}", context.browser)
+        .replace("{location}", "Unknown Location")
+        .replace("{ip}", context.ip)
+        .replace("{time}", new Date().toLocaleString())
+        .replace("{riskScore}", riskScore.toString())
+    );
+
+    console.log("Suspicious activity warning email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending suspicious activity warning email:", error);
+    throw new Error("Failed to send suspicious activity warning email");
+  }
+};
+
+export const sendTwoFactorAuthEmail = async (
+  email,
+  name,
+  verificationCode,
+  context
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "🔐 Two-Factor Authentication Required",
+      TWO_FACTOR_AUTH_TEMPLATE.replace("{name}", name)
+        .replace("{verificationCode}", verificationCode)
+        .replace("{device}", context.device)
+        .replace("{location}", "Unknown Location")
+        .replace("{time}", new Date().toLocaleString())
+    );
+
+    console.log("Two-factor authentication email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending two-factor authentication email:", error);
+    throw new Error("Failed to send two-factor authentication email");
   }
 };

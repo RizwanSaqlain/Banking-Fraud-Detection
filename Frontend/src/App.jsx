@@ -15,11 +15,13 @@ import {
   SignUpPage,
   LoginPage,
   EmailVerificationPage,
+  TwoFactorAuthPage,
   DashboardPage,
   ForgotPasswordPage,
   ResetPasswordPage,
   TransactionPage,
   BankingPage,
+  ProfilePage,
 } from "./pages";
 
 function App() {
@@ -94,6 +96,14 @@ function App() {
           }
         />
         <Route
+          path="/verify-2fa"
+          element={
+            <RedirectAuthenticatedUser>
+              <TwoFactorAuthPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
           path="/forget-password"
           element={
             <RedirectAuthenticatedUser>
@@ -104,9 +114,15 @@ function App() {
         <Route
           path="/reset-password/:token"
           element={
-            <RedirectAuthenticatedUser>
               <ResetPasswordPage />
-            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
           }
         />
 

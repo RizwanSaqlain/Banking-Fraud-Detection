@@ -1,6 +1,6 @@
-import { model, Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -70,6 +70,7 @@ const userSchema = new Schema(
           location: {
             lat: Number,
             lon: Number,
+            locationName: String, // e.g., 'San Francisco
           },
           timestamp: Date,
           riskScore: Number,
@@ -80,43 +81,17 @@ const userSchema = new Schema(
     riskScore: {
       type: Number, // cumulative risk score based on context evaluation
     },
+
+    riskScore: {
+      type: Number, // cumulative risk score based on context evaluation
+    },
+    fullName: { type: String, default: "" },
+    address: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    dob: { type: Date },
   },
   { timestamps: true }
 );
 
-export const User = model("User", userSchema);
-
-// import { model, Schema } from "mongoose";
-
-// const userSchema = new Schema(
-//   {
-//     email: {
-//       type: String,
-//       unique: true,
-//       required: true,
-//     },
-//     password: {
-//       type: String,
-//       required: true,
-//     },
-//     name: {
-//       type: String,
-//       required: true,
-//     },
-//     isVerified: {
-//       type: Boolean,
-//       default: false,
-//     },
-//     lastLogin: {
-//       type: Date,
-//       default: Date.now(),
-//     },
-//     resetPasswordToken: String,
-//     resetPasswordExpiresAt: Date,
-//     verificationToken: String,
-//     verificationTokenExpiresAt: Date,
-//   },
-//   { timestamps: true }
-// );
-
-// export const User = model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;

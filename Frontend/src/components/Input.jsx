@@ -1,7 +1,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
-const Input = ({ icon: Icon, type, ...props }) => {
+const Input = ({ icon: Icon, type = "text", label, ...props }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
 
@@ -9,6 +9,9 @@ const Input = ({ icon: Icon, type, ...props }) => {
 
   return (
     <div className="relative mb-6">
+      {label && (
+        <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
+      )}
       {/* Left Icon */}
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <Icon className="size-5 text-violet-500" />

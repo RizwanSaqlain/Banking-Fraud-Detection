@@ -5,6 +5,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import ProtectedRoute from "./ProtectedRoute";
 import RedirectAuthenticatedUser from "./RedirectAuthenticatedUser";
 import MouseTracker from "./MouseTracker";
+import ContextLogTable from "./ContextLogTable";
 
 export {
   FloatingShape,
@@ -14,4 +15,5 @@ export {
   ProtectedRoute,
   RedirectAuthenticatedUser,
   MouseTracker,
+  ContextLogTable,
 };

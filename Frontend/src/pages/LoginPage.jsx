@@ -6,22 +6,32 @@ import { Link } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
-import useContextData from "../hooks/UseContextData";
+import useContextData from "../hooks/useContextData";
 import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
-  const { context, handleKeyDown } = useContextData();
   const [captcha, setCaptcha] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
+  const { context, handleKeyDown } = useContextData();
+  const { login, error, isLoading, require2FA } = useAuthStore();
+
   const Navigate = useNavigate();
-  const { login, error, isLoading } = useAuthStore();
 
   const handleCaptcha = (value) => setCaptcha(value);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password, context, captcha);
+      const response = await login(email, password, context, captcha);
+      
+      // Check if 2FA is required
+      if (response && response.require2FA) {
+        toast.success("Two-factor authentication required. Check your email for the verification code.");
+        Navigate("/verify-2fa");
+        return;
+      }
+      
       toast.success("Logged in successfully!");
       Navigate("/bankingpage");
     } catch (error) {

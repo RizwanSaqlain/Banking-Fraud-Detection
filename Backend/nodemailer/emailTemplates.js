@@ -171,3 +171,152 @@ export const ACCOUNT_DELETION_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 </body>
 </html>
 `;
+
+export const NEWDEVICE_LOGIN_ALERT_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Device Login Detected</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #ff4b2b, #ff416c); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">New Device Login Alert</h1>
+  </div>
+
+  <div style="background-color: #fff8f8; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hi <strong>{name}</strong>,</p>
+    <p>We noticed a login to your account from a new device or location:</p>
+
+    <ul style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+      <li><strong>Device:</strong> {device}</li>
+      <li><strong>Browser:</strong> {browser}</li>
+      <li><strong>Location:</strong> {location}</li>
+      <li><strong>IP Address:</strong> {ip}</li>
+      <li><strong>Time:</strong> {time}</li>
+    </ul>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <div style="background-color: #ff4b2b; color: white; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; display: inline-block; text-align: center; font-size: 28px;">
+        ⚠️
+      </div>
+    </div>
+
+    <p>If this was <strong>you</strong>, no further action is needed.</p>
+    <p>If this wasn't you, please <a href="{secureLink}" style="color: #ff4b2b;">secure your account immediately</a> and change your password.</p>
+
+    <p>Stay safe,<br>The Auth App Security Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>
+`;
+
+export const SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Suspicious Activity Detected</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #ff6b35, #f7931e); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">⚠️ Suspicious Activity Detected</h1>
+  </div>
+
+  <div style="background-color: #fff8f8; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hi <strong>{name}</strong>,</p>
+    <p>Our security system has detected suspicious activity on your account and has temporarily blocked the login attempt for your protection.</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <div style="background-color: #ff6b35; color: white; width: 50px; height: 50px; line-height: 50px; border-radius: 50%; display: inline-block; text-align: center; font-size: 28px;">
+        🚫
+      </div>
+    </div>
+
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #ff6b35;">Login Attempt Details:</h3>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Device:</strong> {device}</li>
+        <li><strong>Browser:</strong> {browser}</li>
+        <li><strong>Location:</strong> {location}</li>
+        <li><strong>IP Address:</strong> {ip}</li>
+        <li><strong>Time:</strong> {time}</li>
+        <li><strong>Risk Score:</strong> {riskScore}</li>
+      </ul>
+    </div>
+
+    <p><strong>What this means:</strong></p>
+    <ul>
+      <li>Your account is safe and no unauthorized access occurred</li>
+      <li>The login attempt was blocked due to unusual patterns</li>
+      <li>This could be due to a new device, location, or unusual behavior</li>
+    </ul>
+
+    <p><strong>If this was you:</strong></p>
+    <ul>
+      <li>Try logging in from a trusted device and location</li>
+      <li>Ensure you're using your usual browser and network</li>
+      <li>Contact support if you continue to experience issues</li>
+    </ul>
+
+    <p><strong>If this wasn't you:</strong></p>
+    <ul>
+      <li>Your account is already protected</li>
+      <li>Consider changing your password as a precaution</li>
+      <li>Enable two-factor authentication for additional security</li>
+    </ul>
+
+    <p>Thank you for helping us keep your account secure!</p>
+    <p>Best regards,<br>The Auth App Security Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>`;
+
+export const TWO_FACTOR_AUTH_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Two-Factor Authentication Required</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(to right, #2b7fff, #8e51ff); padding: 20px; text-align: center;">
+    <h1 style="color: white; margin: 0;">🔐 Two-Factor Authentication</h1>
+  </div>
+
+  <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <p>Hi <strong>{name}</strong>,</p>
+    <p>For your security, we require additional verification to complete your login. Please use the verification code below:</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2b7fff;">{verificationCode}</span>
+    </div>
+
+    <div style="background-color: #e8f4fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2b7fff; margin: 20px 0;">
+      <p style="margin: 0;"><strong>Login Details:</strong></p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Device:</strong> {device}</li>
+        <li><strong>Location:</strong> {location}</li>
+        <li><strong>Time:</strong> {time}</li>
+      </ul>
+    </div>
+
+    <p>Enter this code on the verification page to complete your login.</p>
+    <p>This code will expire in 5 minutes for security reasons.</p>
+    <p>If you didn't attempt to log in, please contact our support team immediately.</p>
+    <p>Best regards,<br>The Auth App Security Team</p>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</body>
+</html>`;
