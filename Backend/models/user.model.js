@@ -60,21 +60,26 @@ const userSchema = new mongoose.Schema({
       default: [],
     },
   },
-  // Optional: historical context logs for audit
-  contextLogs: {
-    type: [
-      {
-        ip: String,
-        device: String,
-        location: {
-          lat: Number,
-          lon: Number,
+    // Optional: historical context logs for audit
+    contextLogs: {
+      type: [
+        {
+          ip: String,
+          device: String,
+          location: {
+            lat: Number,
+            lon: Number,
+            locationName: String, // e.g., 'San Francisco
+          },
+          timestamp: Date,
+          riskScore: Number,
         },
-        timestamp: Date,
-        riskScore: Number,
-      },
-    ],
-    default: [],
+      ],
+      default: [],
+    },
+    riskScore: {
+      type: Number, // cumulative risk score based on context evaluation
+    },
   },
   riskScore: {
     type: Number, // cumulative risk score based on context evaluation

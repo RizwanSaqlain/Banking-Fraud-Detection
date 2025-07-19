@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { Banknote, ShieldCheck, Send, ArrowRight } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import { motion } from "framer-motion";
+import { toast } from 'react-hot-toast';
 import { useAuthStore } from "../store/authStore";
+import { ContextLogTable } from '../components';
 
 const BankingPage = () => {
   const { user, logout } = useAuthStore();
@@ -70,6 +72,8 @@ const BankingPage = () => {
           <p className="text-gray-600">Transfer money to anyone, anytime, anywhere with a few taps.</p>
         </div>
       </section>
+
+      <ContextLogTable logs={user.contextLogs} />
 
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-8 text-center text-sm">
