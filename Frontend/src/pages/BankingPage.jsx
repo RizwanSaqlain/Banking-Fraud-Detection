@@ -1,16 +1,18 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Banknote, ShieldCheck, Send, ArrowRight } from 'lucide-react';
-import { LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Banknote, ShieldCheck, Send, ArrowRight, User, LogOut } from 'lucide-react';
 import { motion } from "framer-motion";
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from "../store/authStore";
 import { ContextLogTable } from '../components';
+import useContextData from '../hooks/useContextData';
+import ContextStatus from '../components/ContextStatus';
 
 const BankingPage = () => {
   const { user, logout } = useAuthStore();
-
+  const { context } = useContextData();
+  const navigate = useNavigate();
   const handleLogout = () => {
     try {
       logout();
@@ -21,20 +23,32 @@ const BankingPage = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Logout Button - Top Right */}
-      <div className="absolute top-6 right-8 z-20">
+    <div className="min-h-screen w-full bg-gray-100">
+      {/* Header with Logout and Profile Buttons - Top Right */}
+      <div className="absolute top-6 right-8 z-20 flex items-center gap-3">
         <motion.button
           whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(59,130,246,0.15)" }}
           whileTap={{ scale: 0.96 }}
-          onClick={handleLogout}
+          onClick={() => navigate("/profile")}
           className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+          title="Profile"
+        >
+          <User className="w-5 h-5" />
+          <span className="hidden sm:inline">Profile</span>
+        </motion.button>
+        
+        <motion.button
+          whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(239,68,68,0.15)" }}
+          whileTap={{ scale: 0.96 }}
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 bg-white text-red-600 border border-red-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-red-50 hover:text-red-700 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
           title="Logout"
         >
           <LogOut className="w-5 h-5" />
           <span className="hidden sm:inline">Logout</span>
         </motion.button>
       </div>
+      
       <header className="bg-gradient-to-br from-blue-800 to-violet-900 text-white py-20 px-8 text-center">
         <h1 className="text-5xl font-bold mb-4">🏦 Welcome to MyBank</h1>
         <p className="text-lg max-w-2xl mx-auto">
@@ -73,8 +87,8 @@ const BankingPage = () => {
         </div>
       </section>
 
+      <ContextStatus context={context} userProfile={user} />
       <ContextLogTable logs={user.contextLogs} />
-
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-8 text-center text-sm">
         &copy; {new Date().getFullYear()} MyBank. All rights reserved.
