@@ -6,6 +6,8 @@ import {
   PASSWORD_RESET_SUCCESS_TEMPLATE,
   VERIFICATION_EMAIL_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
+  SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE,
+  TWO_FACTOR_AUTH_TEMPLATE,
 } from "./emailTemplates.js";
 
 export const sendVerificationEmail = async (email, verificationCode) => {
@@ -120,5 +122,55 @@ export const sendNewDeviceLoginAlert = async (
   } catch (error) {
     console.error("Error sending new device login alert email:", error);
     throw new Error("Failed to send new device login alert email");
+  }
+};
+
+export const sendSuspiciousActivityWarning = async (
+  email,
+  name,
+  context,
+  riskScore
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "⚠️ Suspicious Activity Detected - Login Blocked",
+      SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE.replace("{name}", name)
+        .replace("{device}", context.device)
+        .replace("{browser}", context.browser)
+        .replace("{location}", "Unknown Location")
+        .replace("{ip}", context.ip)
+        .replace("{time}", new Date().toLocaleString())
+        .replace("{riskScore}", riskScore.toString())
+    );
+
+    console.log("Suspicious activity warning email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending suspicious activity warning email:", error);
+    throw new Error("Failed to send suspicious activity warning email");
+  }
+};
+
+export const sendTwoFactorAuthEmail = async (
+  email,
+  name,
+  verificationCode,
+  context
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "🔐 Two-Factor Authentication Required",
+      TWO_FACTOR_AUTH_TEMPLATE.replace("{name}", name)
+        .replace("{verificationCode}", verificationCode)
+        .replace("{device}", context.device)
+        .replace("{location}", "Unknown Location")
+        .replace("{time}", new Date().toLocaleString())
+    );
+
+    console.log("Two-factor authentication email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending two-factor authentication email:", error);
+    throw new Error("Failed to send two-factor authentication email");
   }
 };

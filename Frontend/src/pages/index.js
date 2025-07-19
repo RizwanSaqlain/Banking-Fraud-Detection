@@ -1,6 +1,7 @@
 import SignUpPage from "./SignUpPage";
 import LoginPage from "./LoginPage";
 import EmailVerificationPage from "./EmailVerificationPage";
+import TwoFactorAuthPage from "./TwoFactorAuthPage";
 import DashboardPage from "./DashboardPage";
 import ForgotPasswordPage from "./ForgotPasswordPage";
 import ResetPasswordPage from "./ResetPasswordPage";
@@ -14,6 +15,7 @@ export {
   SignUpPage,
   LoginPage,
   EmailVerificationPage,
+  TwoFactorAuthPage,
   ForgotPasswordPage,
   ResetPasswordPage,
   ServicePage,

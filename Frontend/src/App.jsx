@@ -15,6 +15,7 @@ import {
   SignUpPage,
   LoginPage,
   EmailVerificationPage,
+  TwoFactorAuthPage,
   DashboardPage,
   ForgotPasswordPage,
   ResetPasswordPage,
@@ -91,6 +92,14 @@ function App() {
           element={
             <RedirectAuthenticatedUser>
               <EmailVerificationPage />
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/verify-2fa"
+          element={
+            <RedirectAuthenticatedUser>
+              <TwoFactorAuthPage />
             </RedirectAuthenticatedUser>
           }
         />

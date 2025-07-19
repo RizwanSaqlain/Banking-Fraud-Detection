@@ -14,6 +14,8 @@ import {
   sendResetSuccessEmail,
   sendAccountDeletionEmail,
   sendNewDeviceLoginAlert,
+  sendSuspiciousActivityWarning,
+  sendTwoFactorAuthEmail,
 } from "../nodemailer/emails.js";
 import { updateContextProfile } from "../utils/updateContextProfile.js";
 
@@ -302,18 +304,41 @@ export const login = async (req, res) => {
 
       const risk = evaluateContext(context, user);
 
-      // Here you can implement your risk evaluation logic
-      // For example, if risk is high, you can block the login or require additional verification
-      // if (risk >= 5) {
-      //   return res
-      //     .status(403)
-      //     .json({ error: "Suspicious activity, login blocked" });
-      // } else if (risk >= 4) {
-      //   return res
-      //     .status(200)
-      //     .json({ message: "2FA required", require2FA: true });
-      // }
-      // const risk = 0;
+      // Risk-based authentication logic
+      if (risk >= 10) {
+        // Block login and send warning email for high risk
+        await sendSuspiciousActivityWarning(
+          user.email,
+          user.name,
+          context,
+          risk
+        );
+        return res.status(403).json({
+          success: false,
+          message:
+            "Suspicious activity detected, login blocked for your security. Check your email for details.",
+        });
+      } else if (risk >= 5) {
+        // Require 2FA for medium risk
+        const verificationToken = generateVerificationCode();
+        user.verificationToken = verificationToken;
+        user.verificationTokenExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+        await user.save();
+
+        await sendTwoFactorAuthEmail(
+          user.email,
+          user.name,
+          verificationToken,
+          context
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: "Two-factor authentication required",
+          require2FA: true,
+          email: user.email,
+        });
+      }
 
       user.lastLogin = new Date();
       await updateContextProfile(user, context, risk);
@@ -381,6 +406,56 @@ export const deleteAccount = async (req, res) => {
       .json({ success: true, message: "Account deleted successfully" });
   } catch (error) {
     console.error("Error deleting account:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const verifyTwoFactorAuth = async (req, res) => {
+  const { email, verificationCode } = req.body;
+  try {
+    if (!email || !verificationCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and verification code are required!",
+      });
+    }
+
+    const user = await User.findOne({
+      email,
+      verificationToken: verificationCode,
+      verificationTokenExpiresAt: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
+    }
+
+    // Clear the verification token
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+    await user.save();
+
+    // Generate token and set cookie
+    generateTokenAndSetCookie(res, user._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Two-factor authentication completed successfully",
+      user: {
+        ...user._doc,
+        password: undefined,
+        trustedIPs: undefined,
+        trustedDevices: undefined,
+        locations: undefined,
+        behavioralProfile: undefined,
+        riskScore: undefined,
+      },
+    });
+  } catch (error) {
+    console.log("Error verifying two-factor authentication:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
