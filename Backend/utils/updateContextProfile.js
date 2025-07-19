@@ -1,5 +1,4 @@
-
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
 import { getLocationName } from "./getLocationName.js";
 
 export const updateContextProfile = async (user, context, riskScore) => {
