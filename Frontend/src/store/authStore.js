@@ -15,6 +15,8 @@ export const useAuthStore = create((set) => ({
   error: null,
   isCheckingAuth: true,
   message: null,
+  require2FA: false,
+  twoFAEmail: null,
 
   signup: async (name, email, password, context, captcha) => {
     set({ isLoading: true, error: null });
@@ -132,15 +134,55 @@ export const useAuthStore = create((set) => ({
         context, // Pass the context
         captcha,
       });
+      
+      // Check if 2FA is required
+      if (response.data.require2FA) {
+        set({
+          isLoading: false,
+          error: null,
+          message: response.data.message,
+          require2FA: true,
+          twoFAEmail: response.data.email,
+        });
+        return response.data; // Return the response for 2FA handling
+      }
+      
       set({
         user: response.data.user,
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        require2FA: false,
       });
     } catch (error) {
       set({
         error: error.response?.data?.message || "Login failed",
+        isLoading: false,
+        require2FA: false,
+      });
+      throw error;
+    }
+  },
+
+  verifyTwoFactorAuth: async (email, verificationCode) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/verify-2fa`, {
+        email,
+        verificationCode,
+      });
+      set({
+        user: response.data.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        require2FA: false,
+        twoFAEmail: null,
+      });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Two-factor authentication failed",
         isLoading: false,
       });
       throw error;

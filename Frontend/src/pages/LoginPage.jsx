@@ -14,7 +14,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   
   const { context, handleKeyDown } = useContextData();
-  const { login, error, isLoading } = useAuthStore();
+  const { login, error, isLoading, require2FA } = useAuthStore();
 
   const Navigate = useNavigate();
 
@@ -23,7 +23,15 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(email, password, context, captcha);
+      const response = await login(email, password, context, captcha);
+      
+      // Check if 2FA is required
+      if (response && response.require2FA) {
+        toast.success("Two-factor authentication required. Check your email for the verification code.");
+        Navigate("/verify-2fa");
+        return;
+      }
+      
       toast.success("Logged in successfully!");
       Navigate("/bankingpage");
     } catch (error) {

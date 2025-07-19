@@ -16,11 +16,11 @@ export default function MouseTracker() {
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Capture every 200ms
+    // Capture every 60 seconds
     const trackingInterval = setInterval(() => {
       const time_ms = Date.now() - sessionStart.current;
       movementBuffer.current.push({ time_ms, x: lastX, y: lastY });
-    }, 200);
+    }, 60000);
 
     // Send every 60 seconds to Flask backend
     const uploadInterval = setInterval(async () => {

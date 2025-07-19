@@ -105,7 +105,10 @@ const TransactionPage = () => {
       {/* Logout Button - Top Right */}
       <div className="absolute top-6 right-8 z-20">
         <motion.button
-          whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(59,130,246,0.15)" }}
+          whileHover={{
+            scale: 1.08,
+            boxShadow: "0 4px 24px rgba(59,130,246,0.15)",
+          }}
           whileTap={{ scale: 0.96 }}
           onClick={handleLogout}
           className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
@@ -120,13 +123,18 @@ const TransactionPage = () => {
         <div className="flex items-center justify-center text-black">
           <div className="w-full max-w-md p-8 bg-white shadow-2xl rounded-3xl border border-gray-100 backdrop-blur-sm">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">Make a Transaction</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                Make a Transaction
+              </h2>
               <p className="text-gray-600">Fill in the details below</p>
             </div>
 
             {/* Blockchain toggle */}
             <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
-              <label htmlFor="useBlockchain" className="flex items-center gap-2">
+              <label
+                htmlFor="useBlockchain"
+                className="flex items-center gap-2"
+              >
                 <ShieldCheck className="text-blue-500 w-5 h-5" />
                 <span>Secure via Blockchain</span>
               </label>
@@ -141,7 +149,10 @@ const TransactionPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Recipient Name <span className="text-red-500" title="Required">*</span>
+                  Recipient Name{" "}
+                  <span className="text-red-500" title="Required">
+                    *
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -215,7 +226,9 @@ const TransactionPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Note (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Note (optional)
+                </label>
                 <input
                   type="text"
                   name="note"
@@ -243,8 +256,12 @@ const TransactionPage = () => {
                 </div>
                 {useBlockchain && txHash && (
                   <div className="text-xs text-gray-800 break-all bg-gray-100 p-3 rounded-lg border border-gray-200">
-                    <div><strong>Tx Hash:</strong> {txHash}</div>
-                    <div><strong>Status:</strong> {chainStatus}</div>
+                    <div>
+                      <strong>Tx Hash:</strong> {txHash}
+                    </div>
+                    <div>
+                      <strong>Status:</strong> {chainStatus}
+                    </div>
                   </div>
                 )}
               </div>
@@ -260,9 +277,10 @@ const TransactionPage = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx="true">{`
         @keyframes float {
-          0%, 100% {
+          0%,
+          100% {
             transform: translateY(0px);
           }
           50% {
