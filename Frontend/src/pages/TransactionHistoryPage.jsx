@@ -14,17 +14,36 @@ export default function TransactionHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Function to mask sensitive data (show only last 4 characters)
+  const maskData = (data, type = 'default') => {
+    if (!data) return '';
+    
+    if (type === 'account') {
+      // For account number: show last 4 digits, mask the rest
+      const length = data.length;
+      if (length <= 4) return data;
+      return 'X'.repeat(length - 4) + data.slice(-4);
+    } else if (type === 'ifsc') {
+      // For IFSC: show last 4 characters, mask the rest
+      const length = data.length;
+      if (length <= 4) return data;
+      return 'X'.repeat(length - 4) + data.slice(-4);
+    }
+    
+    return data;
+  };
+
   useEffect(() => {
     const fetchTransactions = async () => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem("token");
         const res = await axios.get(API_URL, {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true, // Include cookies in the request
         });
         setTransactions(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
+        console.error('Error fetching transactions:', err);
         setError("Failed to fetch transactions");
         setTransactions([]);
       } finally {
@@ -108,11 +127,11 @@ export default function TransactionHistoryPage() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex items-center space-x-2">
               <CreditCard className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Account: {txn.accountNumber}</span>
+              <span className="text-gray-600">Account: {maskData(txn.accountNumber, 'account')}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Building className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">IFSC: {txn.ifsc}</span>
+              <span className="text-gray-600">IFSC: {maskData(txn.ifsc, 'ifsc')}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Target className="w-4 h-4 text-gray-400" />
@@ -235,9 +254,9 @@ export default function TransactionHistoryPage() {
                           <span>{txn.recipient}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">{txn.accountNumber}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">{txn.ifsc}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{txn.purpose}</td>
+                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-black">{maskData(txn.accountNumber, 'account')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-black">{maskData(txn.ifsc, 'ifsc')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black">{txn.purpose}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-green-700">₹{txn.amount.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${txn.status === "Success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>

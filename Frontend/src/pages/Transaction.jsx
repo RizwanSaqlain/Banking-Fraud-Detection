@@ -1,124 +1,3 @@
-// import React, { useState } from 'react';
-// import axios from 'axios';
-// import { CheckCircle, XCircle } from 'lucide-react'; // Optional icon library (lucide-react)
-
-// const TransactionPage = () => {
-//   const [formData, setFormData] = useState({
-//     amount: '',
-//     recipient: '',
-//     purpose: '',
-//   });
-
-//   const [status, setStatus] = useState('');
-//   const [error, setError] = useState('');
-
-//   const handleChange = (e) => {
-//     setFormData((prev) => ({
-//       ...prev,
-//       [e.target.name]: e.target.value,
-//     }));
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setStatus('');
-//     setError('');
-
-//     try {
-//       const token = localStorage.getItem('token');
-//       const res = await axios.post(
-//         'http://localhost:5000/api/transactions',
-//         formData,
-//         { headers: { Authorization: `Bearer ${token}` } }
-//       );
-//       setStatus('Transaction Successful');
-//       setFormData({ amount: '', recipient: '', purpose: '' });
-//     } catch (err) {
-//       console.error(err);
-//       setError('Transaction Failed');
-//     }
-//   };
-
-//   return (
-//     <div className="max-w-lg mx-auto mt-16 p-8 bg-white shadow-2xl rounded-3xl border border-gray-200">
-//       <h2 className="text-3xl font-bold text-center text-blue-700 mb-8">
-//         💸 Make a Transaction
-//       </h2>
-
-//       <form onSubmit={handleSubmit} className="space-y-6">
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Recipient Name
-//           </label>
-//           <input
-//             type="text"
-//             name="recipient"
-//             value={formData.recipient}
-//             onChange={handleChange}
-//             required
-//             placeholder="e.g. Ramesh Kumar"
-//             className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Amount (₹)
-//           </label>
-//           <input
-//             type="number"
-//             name="amount"
-//             value={formData.amount}
-//             onChange={handleChange}
-//             required
-//             placeholder="e.g. 500"
-//             className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Purpose
-//           </label>
-//           <textarea
-//             name="purpose"
-//             value={formData.purpose}
-//             onChange={handleChange}
-//             required
-//             placeholder="e.g. Bill Payment / Rent / Gift"
-//             className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-//           />
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-blue-600 transition duration-300 shadow-md"
-//         >
-//           🚀 Send Money
-//         </button>
-//       </form>
-
-//       {status && (
-//         <div className="mt-6 flex items-center justify-center text-green-600 gap-2 text-sm font-medium">
-//           <CheckCircle className="w-5 h-5" />
-//           {status}
-//         </div>
-//       )}
-
-//       {error && (
-//         <div className="mt-6 flex items-center justify-center text-red-600 gap-2 text-sm font-medium">
-//           <XCircle className="w-5 h-5" />
-//           {error}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default TransactionPage;
-
-
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -141,6 +20,7 @@ const TransactionPage = () => {
   const [status, setStatus] = useState("")
   const [error, setError] = useState("")
   const [animationStep, setAnimationStep] = useState(0)
+  const [fieldErrors, setFieldErrors] = useState({})
   const { logout } = useAuthStore();
 
   // Animation cycle for the left side
@@ -151,11 +31,89 @@ const TransactionPage = () => {
     return () => clearInterval(interval)
   }, [])
 
+  // Format IFSC code (4 letters + 7 alphanumeric)
+  const formatIFSC = (value) => {
+    // Remove all non-alphanumeric characters
+    const cleaned = value.replace(/[^A-Za-z0-9]/g, '')
+    
+    // Format as XXXX0000000 (4 letters + 7 alphanumeric)
+    if (cleaned.length <= 4) {
+      return cleaned.toUpperCase()
+    } else {
+      return (cleaned.slice(0, 4) + cleaned.slice(4, 11)).toUpperCase()
+    }
+  }
+
+  // Format account number (only numbers, max 15 digits)
+  const formatAccountNumber = (value) => {
+    // Remove all non-numeric characters
+    const cleaned = value.replace(/\D/g, '')
+    
+    // Limit to 15 digits
+    return cleaned.slice(0, 15)
+  }
+
+  // Validate IFSC code
+  const validateIFSC = (ifsc) => {
+    const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/
+    return ifscPattern.test(ifsc)
+  }
+
+  // Validate account number
+  const validateAccountNumber = (accountNumber) => {
+    return accountNumber.length >= 9 && accountNumber.length <= 15
+  }
+
   const handleChange = (e) => {
+    const { name, value } = e.target
+    let formattedValue = value
+
+    // Apply formatting based on field type
+    if (name === 'ifsc') {
+      formattedValue = formatIFSC(value)
+    } else if (name === 'accountNumber') {
+      formattedValue = formatAccountNumber(value)
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: formattedValue,
     }))
+
+    // Clear field-specific errors when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const errors = {}
+
+    if (!validateIFSC(formData.ifsc)) {
+      errors.ifsc = "IFSC code must be 11 characters: 4 letters + 7 alphanumeric (e.g., SBIN0001234)"
+    }
+
+    if (!validateAccountNumber(formData.accountNumber)) {
+      errors.accountNumber = "Account number must be 9-15 digits"
+    }
+
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      errors.amount = "Please enter a valid amount"
+    }
+
+    if (!formData.recipient.trim()) {
+      errors.recipient = "Recipient name is required"
+    }
+
+    if (!formData.purpose.trim()) {
+      errors.purpose = "Purpose is required"
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
   }
 
   const handleSubmit = async (e) => {
@@ -163,18 +121,26 @@ const TransactionPage = () => {
     setStatus("")
     setError("")
 
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form")
+      return
+    }
+
     try {
-      const token = localStorage.getItem("token")
       const res = await axios.post("http://localhost:5000/api/transactions", formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // Include cookies in the request
       })
       setStatus("Transaction Successful")
       setFormData({ amount: "", recipient: "", accountNumber: "", ifsc: "", purpose: "", note: "" })
+      setFieldErrors({})
+      toast.success("Transaction completed successfully!")
     } catch (err) {
-      console.error(err)
+      console.error('Transaction error:', err)
       setError("Transaction Failed")
+      toast.error("Transaction failed. Please try again.")
     }
   }
+
   const handleLogout = () => {
     try {
       logout();
@@ -317,9 +283,15 @@ const TransactionPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="e.g. Ramesh Kumar"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={`w-full border px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white ${
+                    fieldErrors.recipient ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {fieldErrors.recipient && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.recipient}</p>
+                )}
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Account Number <span className="text-red-500" title="Required">*</span>
@@ -331,9 +303,17 @@ const TransactionPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="e.g. 1234567890"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  maxLength={15}
+                  className={`w-full border px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white ${
+                    fieldErrors.accountNumber ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {fieldErrors.accountNumber && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.accountNumber}</p>
+                )}
+                <p className="text-gray-500 text-xs mt-1">9-15 digits only</p>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   IFSC Code <span className="text-red-500" title="Required">*</span>
@@ -345,9 +325,17 @@ const TransactionPage = () => {
                   onChange={handleChange}
                   required
                   placeholder="e.g. SBIN0001234"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white uppercase"
+                  maxLength={11}
+                  className={`w-full border px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white uppercase ${
+                    fieldErrors.ifsc ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {fieldErrors.ifsc && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.ifsc}</p>
+                )}
+                <p className="text-gray-500 text-xs mt-1">Format: XXXX0000000 (4 letters + 7 alphanumeric)</p>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Amount (₹) <span className="text-red-500" title="Required">*</span>
@@ -358,10 +346,18 @@ const TransactionPage = () => {
                   value={formData.amount}
                   onChange={handleChange}
                   required
+                  min="1"
+                  step="0.01"
                   placeholder="e.g. 500"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className={`w-full border px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white ${
+                    fieldErrors.amount ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {fieldErrors.amount && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.amount}</p>
+                )}
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Purpose <span className="text-red-500" title="Required">*</span>
@@ -373,9 +369,15 @@ const TransactionPage = () => {
                   required
                   placeholder="e.g. Bill Payment / Rent / Gift"
                   rows={3}
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white resize-none"
+                  className={`w-full border px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white resize-none ${
+                    fieldErrors.purpose ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {fieldErrors.purpose && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.purpose}</p>
+                )}
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Note (optional)</label>
                 <input
