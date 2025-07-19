@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { getLocationName } from "./getLocationName.js";
 
 export const updateContextProfile = async (user, context, riskScore) => {
   const updates = {};
@@ -50,6 +51,11 @@ export const updateContextProfile = async (user, context, riskScore) => {
       location: {
         lat: context.location.latitude,
         lon: context.location.longitude,
+        locationName:
+          (await getLocationName(
+            context.location.latitude,
+            context.location.longitude
+          )) || "Unknown",
       },
       timestamp: new Date(),
       riskScore,

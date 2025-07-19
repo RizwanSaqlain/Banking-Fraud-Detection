@@ -70,6 +70,7 @@ const userSchema = new Schema(
           location: {
             lat: Number,
             lon: Number,
+            locationName: String, // e.g., 'San Francisco
           },
           timestamp: Date,
           riskScore: Number,

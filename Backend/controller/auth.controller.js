@@ -6,6 +6,7 @@ import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { verifyCaptcha } from "../utils/verifyCaptcha.js";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { evaluateContext } from "../utils/contextEvaluator.js";
+import { getLocationName } from "../utils/getLocationName.js";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
@@ -65,6 +66,11 @@ export const signup = async (req, res) => {
           location: {
             lat: context.location.latitude,
             lon: context.location.longitude,
+            locationName:
+              (await getLocationName(
+                context.location.latitude,
+                context.location.longitude
+              )) || "Unknown", // Use provided location name or default to "Unknown"
           },
           timestamp: new Date(),
           riskScore: 0, // Initial risk score for this context
@@ -325,7 +331,6 @@ export const login = async (req, res) => {
       user: {
         ...user._doc,
         password: undefined,
-        contextLogs: undefined,
         trustedIPs: undefined,
         trustedDevices: undefined,
         locations: undefined,
