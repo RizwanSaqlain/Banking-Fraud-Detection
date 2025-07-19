@@ -5,7 +5,7 @@ import { Loader, Lock, Mail, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useAuthStore } from "../store/authStore";
-import useContextData from "../hooks/UseContextData";
+import useContextData from "../hooks/useContextData";
 
 const SignUpPage = () => {
   const { context, handleKeyDown } = useContextData();

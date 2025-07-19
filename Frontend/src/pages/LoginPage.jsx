@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
-import useContextData from "../hooks/UseContextData";
+import useContextData from "../hooks/useContextData";
 import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [captcha, setCaptcha] = useState("");

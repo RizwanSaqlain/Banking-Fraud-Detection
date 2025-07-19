@@ -7,6 +7,7 @@ import ResetPasswordPage from "./ResetPasswordPage";
 import ServicePage from "./ServicePage";
 import TransactionPage from "./Transaction";
 import BankingPage from "./BankingPage";
+import ProfilePage from "./ProfilePage";
 
 export {
   DashboardPage,
@@ -18,4 +19,5 @@ export {
   ServicePage,
   TransactionPage,
   BankingPage,
+  ProfilePage,
 };

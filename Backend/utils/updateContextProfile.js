@@ -1,3 +1,4 @@
+
 import { User } from "../models/user.model.js";
 import { getLocationName } from "./getLocationName.js";
 
