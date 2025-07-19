@@ -28,6 +28,29 @@ const userSchema = new mongoose.Schema(
     verificationToken: String,
     verificationTokenExpiresAt: Date,
 
+    // Transaction verification fields
+    transactionVerificationToken: String,
+    transactionVerificationExpiresAt: Date,
+    pendingTransaction: {
+      amount: Number,
+      recipient: String,
+      accountNumber: String,
+      ifsc: String,
+      purpose: String,
+      note: {
+        type: String,
+        default: ""
+      },
+      context: {
+        type: Object,
+        default: {}
+      },
+      useBlockchain: {
+        type: Boolean,
+        default: false
+      }
+    },
+
     // Context-Driven Intelligence fields:
     trustedDevices: {
       type: [String], // e.g., ['MacOS Safari', 'iPhone 14']
@@ -80,10 +103,7 @@ const userSchema = new mongoose.Schema(
     },
     riskScore: {
       type: Number, // cumulative risk score based on context evaluation
-    },
-
-    riskScore: {
-      type: Number, // cumulative risk score based on context evaluation
+      default: 0
     },
     fullName: { type: String, default: "" },
     address: { type: String, default: "" },

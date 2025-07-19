@@ -99,8 +99,14 @@ export default function TransactionHistoryPage() {
                 <p className="text-sm text-gray-300">{formatDate(txn.date)}</p>
               </div>
             </div>
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${txn.status === "Success" ? "bg-green-900 bg-opacity-50 text-green-400 border border-green-600" : "bg-red-900 bg-opacity-50 text-red-400 border border-red-600"}`}>
-              {txn.status === "Success" ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />} {txn.status}
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+              txn.status.includes("Success (No Blockchain)") 
+                ? "bg-yellow-900 bg-opacity-50 text-yellow-400 border border-yellow-600" 
+                : txn.status.includes("Success") 
+                  ? "bg-green-900 bg-opacity-50 text-green-400 border border-green-600" 
+                  : "bg-red-900 bg-opacity-50 text-red-400 border border-red-600"
+            }`}>
+              {txn.status.includes("Success") ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />} {txn.status}
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -191,7 +197,7 @@ export default function TransactionHistoryPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-300">Successful</p>
-                  <p className="text-2xl font-bold text-white">{transactions.filter((t) => t.status === "Success").length}</p>
+                  <p className="text-2xl font-bold text-white">{transactions.filter((t) => t.status.includes("Success")).length}</p>
                 </div>
               </motion.div>
               <motion.div 
@@ -257,8 +263,14 @@ export default function TransactionHistoryPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{txn.purpose}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-green-400">₹{txn.amount.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${txn.status === "Success" ? "bg-green-900 bg-opacity-50 text-green-400 border border-green-600" : "bg-red-900 bg-opacity-50 text-red-400 border border-red-600"}`}>
-                          {txn.status === "Success" ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />} {txn.status}
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          txn.status.includes("Success (No Blockchain)") 
+                            ? "bg-yellow-900 bg-opacity-50 text-yellow-400 border border-yellow-600" 
+                            : txn.status.includes("Success") 
+                              ? "bg-green-900 bg-opacity-50 text-green-400 border border-green-600" 
+                              : "bg-red-900 bg-opacity-50 text-red-400 border border-red-600"
+                        }`}>
+                          {txn.status.includes("Success") ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />} {txn.status}
                         </span>
                       </td>
                     </tr>

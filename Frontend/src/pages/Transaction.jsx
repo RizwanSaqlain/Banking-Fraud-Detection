@@ -13,6 +13,8 @@ import {
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
+import useContextData from "../hooks/useContextData";
+import { useNavigate } from "react-router-dom";
 
 const TransactionPage = () => {
   const [formData, setFormData] = useState({
@@ -30,8 +32,11 @@ const TransactionPage = () => {
   const [txHash, setTxHash] = useState("");
   const [chainStatus, setChainStatus] = useState("");
   const [animationStep, setAnimationStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { logout } = useAuthStore();
+  const { context, handleKeyDown } = useContextData();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -49,6 +54,13 @@ const TransactionPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+    
+    setIsSubmitting(true);
     setStatus("");
     setError("");
     setTxHash("");
@@ -60,11 +72,32 @@ const TransactionPage = () => {
         ? "http://localhost:5000/api/transactions/create"
         : "http://localhost:5000/api/transactions";
 
-      const res = await axios.post(endpoint, formData, {
+      // Include context data in the request
+      const requestData = {
+        ...formData,
+        context: context, // Add context data for security evaluation
+        useBlockchain: useBlockchain // Include blockchain preference
+      };
+
+      const res = await axios.post(endpoint, requestData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      // Check for risk-based responses
+      if (res.data.success === false) {
+        if (res.data.message && res.data.message.includes("Suspicious activity")) {
+          setError(res.data.message);
+          toast.error("Transaction blocked due to suspicious activity. Check your email for details.");
+          return;
+        } else if (res.data.requireVerification) {
+          setError("Additional verification required due to unusual activity. Please check your email for the verification code.");
+          toast.success("Verification code sent to your email. Please check and enter the code.");
+          navigate("/transaction-verification");
+          return;
+        }
+      }
 
       setStatus("Transaction Successful");
       setFormData({
@@ -82,9 +115,20 @@ const TransactionPage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError(
-        err?.response?.data?.error || "Transaction Failed. Please try again."
-      );
+      const errorMessage = err?.response?.data?.error || err?.response?.data?.message || "Transaction Failed. Please try again.";
+      setError(errorMessage);
+      
+      // Show appropriate toast messages for different error types
+      if (err?.response?.status === 403) {
+        toast.error("Transaction blocked for security reasons. Check your email for details.");
+      } else if (err?.response?.status === 200 && err?.response?.data?.requireVerification) {
+        toast.success("Verification code sent to your email. Please check and enter the code.");
+        navigate("/transaction-verification");
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,7 +188,7 @@ const TransactionPage = () => {
               />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" onKeyDown={handleKeyDown}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Recipient Name{" "}
@@ -239,10 +283,20 @@ const TransactionPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center space-x-2"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                <Send className="w-5 h-5" />
-                <span>Send Money</span>
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span>Send Money</span>
+                  </>
+                )}
               </button>
             </form>
 
