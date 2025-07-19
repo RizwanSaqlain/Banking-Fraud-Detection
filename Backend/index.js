@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import transactionRoutes from "./routes/transaction.route.js";
 import profileRoutes from "./routes/profile.route.js";
+import serviceRequestRoutes from "./routes/serviceRequest.route.js";
 import connectDB from "./db/connectDB.js";
 
 dotenv.config();
@@ -29,6 +30,7 @@ connectDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/service-requests", serviceRequestRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

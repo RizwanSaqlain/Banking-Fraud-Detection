@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
+import { useAuthStore } from "../store/authStore";
+import { toast } from "react-hot-toast";
+import { Navbar } from "../components";
 
 // Replace with your backend API URL
 const API_BASE = "http://localhost:5000/api/profile";
@@ -16,9 +20,15 @@ const defaultProfile = {
 };
 
 export default function ProfilePage() {
+  const { user, updateProfile } = useAuthStore();
   const [profile, setProfile] = useState(defaultProfile);
   const [exists, setExists] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+  });
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // -- Here you use the auth email, for this demo use a prompt to get email --
@@ -67,34 +77,43 @@ export default function ProfilePage() {
   if (loading) return null;
 
   return (
-    <div className="profile-bg">
-      <div className="profile-card">
-        <div className="profile-header">
-          <div className="profile-img">
-            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="36" fill="#EEE" />
-              <ellipse cx="36" cy="33" rx="16" ry="15" fill="#BBB" />
-              <ellipse cx="36" cy="62" rx="24" ry="14" fill="#CCC" />
-            </svg>
+    <div className="min-h-screen bg-gradient-to-br from-blue-800 to-violet-900">
+      <Navbar />
+      <div className="pt-20 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-lg w-full mx-auto p-8 bg-gray-900 bg-opacity-80 backdrop-filter backdrop-blur-lg rounded-xl shadow-2xl border border-gray-800"
+        >
+          <div className="profile-header">
+            <div className="profile-img">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+                <circle cx="36" cy="36" r="36" fill="#EEE" />
+                <ellipse cx="36" cy="33" rx="16" ry="15" fill="#BBB" />
+                <ellipse cx="36" cy="62" rx="24" ry="14" fill="#CCC" />
+              </svg>
+            </div>
+            <h2>Edit Profile</h2>
+            <p className="profile-note">View and update your account details</p>
           </div>
-          <h2>Edit Profile</h2>
-          <p className="profile-note">View and update your account details</p>
-        </div>
-        <form className="profile-form">
-          <FormField label="Full Name" name="fullName" value={profile.fullName} onChange={handleChange} required />
-          <FormField label="Email" name="email" type="email" value={profile.email} onChange={handleChange} required disabled={exists} />
-          <FormField label="Phone" name="phone" value={profile.phone} onChange={handleChange} />
-          <FormField label="Address" name="address" value={profile.address} onChange={handleChange} />
-          <FormField label="Account Number" name="accountNumber" value={profile.accountNumber} onChange={handleChange} />
-          <FormField label="IFSC Code" name="ifscCode" value={profile.ifscCode} onChange={handleChange} />
-          <FormField label="Aadhaar Number" name="aadhaarNumber" value={profile.aadhaarNumber} onChange={handleChange} />
-          <FormField label="Date of Birth" name="dob" type="date" value={profile.dob} onChange={handleChange} />
-          {!exists ? (
-            <button className="profile-btn" onClick={handleSave}>Save Profile</button>
-          ) : (
-            <button className="profile-btn" onClick={handleUpdate}>Update Profile</button>
-          )}
-        </form>
+          <form className="profile-form">
+            <FormField label="Full Name" name="fullName" value={profile.fullName} onChange={handleChange} required />
+            <FormField label="Email" name="email" type="email" value={profile.email} onChange={handleChange} required disabled={exists} />
+            <FormField label="Phone" name="phone" value={profile.phone} onChange={handleChange} />
+            <FormField label="Address" name="address" value={profile.address} onChange={handleChange} />
+            <FormField label="Account Number" name="accountNumber" value={profile.accountNumber} onChange={handleChange} />
+            <FormField label="IFSC Code" name="ifscCode" value={profile.ifscCode} onChange={handleChange} />
+            <FormField label="Aadhaar Number" name="aadhaarNumber" value={profile.aadhaarNumber} onChange={handleChange} />
+            <FormField label="Date of Birth" name="dob" type="date" value={profile.dob} onChange={handleChange} />
+            {!exists ? (
+              <button className="profile-btn" onClick={handleSave}>Save Profile</button>
+            ) : (
+              <button className="profile-btn" onClick={handleUpdate}>Update Profile</button>
+            )}
+          </form>
+        </motion.div>
       </div>
       <style>{`
         .profile-bg {
