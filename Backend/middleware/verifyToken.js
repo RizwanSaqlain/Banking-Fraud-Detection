@@ -6,10 +6,14 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId; // This must match your JWT payload
-    next();
-  } catch (err) {
-    res.status(401).json({ error: "Token is not valid" });
+    if (!decoded) {
+      return res.status(400).json({ message: "Invalid token." });
+    }
+    req.userId = decoded.userId;// Attach the decoded user info to the request object
+    next(); // Call the next middleware or route handler
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return res.status(400).json({ message: "Invalid token." });
   }
 };
 
