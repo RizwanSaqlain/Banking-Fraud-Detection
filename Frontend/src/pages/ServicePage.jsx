@@ -1,519 +1,775 @@
-import React from "react";
-import { useAuthStore } from "../store/authStore";
-import { toast } from "react-hot-toast";
-// import { motion } from "framer-motion";
-import { LogOut } from "lucide-react";
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Shield,
-  CreditCard,
-  PiggyBank,
-  Building2,
+import React, { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  CreditCard, 
+  DollarSign, 
+  Shield, 
+  TrendingUp, 
+  Users, 
+  Building, 
+  Smartphone, 
+  Globe, 
+  Lock, 
+  CheckCircle, 
+  ArrowRight, 
+  LogOut,
   Phone,
   Mail,
   MapPin,
+  Clock,
   Star,
-  CheckCircle,
-  TrendingUp,
-  Wallet,
+  X,
+  User,
+  Calendar,
+  FileText,
   Home,
-  Car,
+  
 } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { toast } from "react-hot-toast";
 
-export default function ServicePage() {
-    const handleLogout = () => {
-        try {
-          logout();
-          toast.success("Logged out successfully!");
-        } catch (error) {
-          console.error("Logout failed:", error);
-          toast.error("Logout failed. Please try again.");
-        }
+const ServicePage = () => {
+  const { logout } = useAuthStore();
+  const [activeTab, setActiveTab] = useState("all");
+  const [selectedService, setSelectedService] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef(null);
+
+  const handleLogout = () => {
+    try {
+      logout();
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
+  const openServiceForm = (service) => {
+    setSelectedService(service);
+    setFormData({
+      fullName: "",
+      email: "",
+      phone: "",
+      dateOfBirth: "",
+      address: "",
+      occupation: "",
+      monthlyIncome: "",
+      purpose: "",
+      additionalInfo: ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleFieldChange = (fieldName, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+  };
+
+  const updateField = (fieldName, value) => {
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [fieldName]: value
       };
+      return newData;
+    });
+  };
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedService(null);
+    setFormData({});
+  };
+
+
+
+  const handleFormKeyDown = (e) => {
+    if (e.key === 'Enter' && e.target.type !== 'textarea' && e.target.type !== 'submit') {
+      e.preventDefault();
+    }
+  };
+
+  const validateForm = () => {
+    const requiredFields = ['fullName', 'email', 'phone', 'dateOfBirth', 'address', 'occupation'];
+    const errors = [];
+
+    requiredFields.forEach(field => {
+      if (!formData[field] || formData[field].trim() === '') {
+        errors.push(`${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} is required`);
+      }
+    });
+
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.push('Please enter a valid email address');
+    }
+
+    if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      errors.push('Please enter a valid 10-digit phone number');
+    }
+
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    const errors = validateForm();
+    if (errors.length > 0) {
+      errors.forEach(error => toast.error(error));
+      return;
+    }
+
+    setIsSubmitting(true);
     
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">Glucon-D</span>
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success(`${selectedService.name} application submitted successfully! We'll contact you soon.`);
+      closeModal();
+    } catch (error) {
+      toast.error("Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getServiceSpecificFields = () => {
+    if (!selectedService) return [];
+
+    const fieldMappings = {
+      "Online Banking": [
+        { name: "accountType", label: "Account Type", type: "select", options: ["Savings", "Current", "Salary"] },
+        { name: "branchPreference", label: "Preferred Branch", type: "text" }
+      ],
+      "Mobile Banking": [
+        { name: "deviceType", label: "Device Type", type: "select", options: ["Android", "iOS", "Both"] },
+        { name: "existingAccount", label: "Existing Account Number", type: "text" }
+      ],
+      "Credit Cards": [
+        { name: "cardType", label: "Card Type", type: "select", options: ["Rewards", "Travel", "Shopping", "Premium"] },
+        { name: "creditLimit", label: "Desired Credit Limit", type: "select", options: ["₹50,000", "₹1,00,000", "₹2,00,000", "₹5,00,000+"] }
+      ],
+      "Personal Loans": [
+        { name: "loanAmount", label: "Loan Amount Required", type: "select", options: ["₹50,000 - ₹1,00,000", "₹1,00,000 - ₹5,00,000", "₹5,00,000 - ₹10,00,000", "₹10,00,000+"] },
+        { name: "loanPurpose", label: "Loan Purpose", type: "select", options: ["Home Renovation", "Education", "Medical", "Business", "Wedding", "Other"] },
+        { name: "tenure", label: "Preferred Tenure", type: "select", options: ["12 months", "24 months", "36 months", "48 months", "60 months"] }
+      ],
+      "Investment Services": [
+        { name: "investmentType", label: "Investment Type", type: "select", options: ["Mutual Funds", "Fixed Deposits", "Insurance", "Wealth Management"] },
+        { name: "investmentAmount", label: "Investment Amount", type: "select", options: ["₹10,000 - ₹50,000", "₹50,000 - ₹1,00,000", "₹1,00,000 - ₹5,00,000", "₹5,00,000+"] },
+        { name: "riskProfile", label: "Risk Profile", type: "select", options: ["Conservative", "Moderate", "Aggressive"] }
+      ],
+      "Business Banking": [
+        { name: "businessType", label: "Business Type", type: "select", options: ["Sole Proprietorship", "Partnership", "Private Limited", "Public Limited", "LLP"] },
+        { name: "businessAge", label: "Business Age (Years)", type: "select", options: ["0-1", "1-3", "3-5", "5-10", "10+"] },
+        { name: "annualTurnover", label: "Annual Turnover", type: "select", options: ["< ₹10 Lakhs", "₹10-50 Lakhs", "₹50 Lakhs - 1 Crore", "₹1-5 Crores", "₹5+ Crores"] }
+      ],
+      "Insurance": [
+        { name: "insuranceType", label: "Insurance Type", type: "select", options: ["Life Insurance", "Health Insurance", "Motor Insurance", "Home Insurance"] },
+        { name: "coverageAmount", label: "Coverage Amount", type: "select", options: ["₹5 Lakhs", "₹10 Lakhs", "₹25 Lakhs", "₹50 Lakhs", "₹1 Crore+"] },
+        { name: "familyMembers", label: "Number of Family Members", type: "select", options: ["1", "2-3", "4-5", "6+"] }
+      ],
+      "NRI Services": [
+        { name: "countryOfResidence", label: "Country of Residence", type: "text" },
+        { name: "nriType", label: "NRI Type", type: "select", options: ["NRI", "PIO", "OCI"] },
+        { name: "remittanceFrequency", label: "Remittance Frequency", type: "select", options: ["Monthly", "Quarterly", "Yearly", "As Needed"] }
+      ]
+    };
+
+    return fieldMappings[selectedService.name] || [];
+  };
+
+  const services = [
+    {
+      id: 1,
+      name: "Online Banking",
+      description: "Access your accounts 24/7 with secure online banking. Transfer funds, pay bills, and manage your finances from anywhere.",
+      icon: Globe,
+      category: "digital",
+      features: ["24/7 Account Access", "Real-time Balance", "Transaction History", "Bill Payments"],
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      id: 2,
+      name: "Mobile Banking",
+      description: "Bank on the go with our mobile app. Send money, check balances, and manage your accounts with just a tap.",
+      icon: Smartphone,
+      category: "digital",
+      features: ["Mobile Transfers", "QR Payments", "Biometric Login", "Push Notifications"],
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50"
+    },
+    {
+      id: 3,
+      name: "Credit Cards",
+      description: "Choose from our range of credit cards with competitive interest rates, rewards programs, and exclusive benefits.",
+      icon: CreditCard,
+      category: "cards",
+      features: ["Rewards Points", "Cashback", "Travel Insurance", "Zero Annual Fee"],
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      id: 4,
+      name: "Personal Loans",
+      description: "Quick and easy personal loans for your needs. Competitive rates and flexible repayment options.",
+      icon: DollarSign,
+      category: "loans",
+      features: ["Quick Approval", "Flexible Tenure", "Low Interest Rates", "No Hidden Charges"],
+      color: "from-orange-500 to-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      id: 5,
+      name: "Investment Services",
+      description: "Grow your wealth with our investment products. Expert guidance and diverse investment options.",
+      icon: TrendingUp,
+      category: "investment",
+      features: ["Mutual Funds", "Fixed Deposits", "Insurance", "Wealth Management"],
+      color: "from-indigo-500 to-indigo-600",
+      bgColor: "bg-indigo-50"
+    },
+    {
+      id: 6,
+      name: "Business Banking",
+      description: "Comprehensive banking solutions for businesses. From startups to enterprises, we've got you covered.",
+      icon: Building,
+      category: "business",
+      features: ["Business Accounts", "Trade Finance", "Working Capital", "Digital Solutions"],
+      color: "from-red-500 to-red-600",
+      bgColor: "bg-red-50"
+    },
+    {
+      id: 7,
+      name: "Insurance",
+      description: "Protect what matters most with our comprehensive insurance products. Life, health, and general insurance.",
+      icon: Shield,
+      category: "insurance",
+      features: ["Life Insurance", "Health Insurance", "Motor Insurance", "Home Insurance"],
+      color: "from-teal-500 to-teal-600",
+      bgColor: "bg-teal-50"
+    },
+    {
+      id: 8,
+      name: "NRI Services",
+      description: "Specialized banking services for Non-Resident Indians. Manage your Indian finances from anywhere in the world.",
+      icon: Users,
+      category: "nri",
+      features: ["NRI Accounts", "Remittance Services", "Investment Options", "Tax Advisory"],
+      color: "from-pink-500 to-pink-600",
+      bgColor: "bg-pink-50"
+    }
+  ];
+
+  const categories = [
+    { id: "all", name: "All Services", count: services.length },
+    { id: "digital", name: "Digital Banking", count: services.filter(s => s.category === "digital").length },
+    { id: "cards", name: "Cards", count: services.filter(s => s.category === "cards").length },
+    { id: "loans", name: "Loans", count: services.filter(s => s.category === "loans").length },
+    { id: "investment", name: "Investment", count: services.filter(s => s.category === "investment").length },
+    { id: "business", name: "Business", count: services.filter(s => s.category === "business").length },
+    { id: "insurance", name: "Insurance", count: services.filter(s => s.category === "insurance").length },
+    { id: "nri", name: "NRI Services", count: services.filter(s => s.category === "nri").length }
+  ];
+
+  const filteredServices = activeTab === "all" 
+    ? services 
+    : services.filter(service => service.category === activeTab);
+
+  const ServiceCard = ({ service }) => {
+    const IconComponent = service.icon;
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5, scale: 1.02 }}
+        className={`${service.bgColor} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100`}
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className={`w-12 h-12 bg-gradient-to-r ${service.color} rounded-xl flex items-center justify-center shadow-lg`}>
+            <IconComponent className="w-6 h-6 text-white" />
           </div>
-        
-          <div className="flex items-center space-x-3">
           <motion.button
-          whileHover={{ scale: 1.08, boxShadow: "0 4px 24px rgba(59,130,246,0.15)" }}
-          whileTap={{ scale: 0.96 }}
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-full shadow-md font-semibold transition-all duration-200 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-          title="Logout"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => openServiceForm(service)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </div>
+        
+        <h3 className="text-xl font-bold text-gray-900 mb-3">{service.name}</h3>
+        <p className="text-gray-600 mb-4 leading-relaxed">{service.description}</p>
+        
+        <div className="space-y-2">
+          {service.features.map((feature, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{feature}</span>
+            </div>
+          ))}
+        </div>
+        
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => openServiceForm(service)}
+          className={`mt-6 w-full bg-gradient-to-r ${service.color} text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2`}
         >
-          <LogOut className="w-5 h-5" />
-          <span className="hidden sm:inline">Logout</span>
+          <span>Apply Now</span>
+          <ArrowRight className="w-4 h-4" />
         </motion.button>
-          </div>
-        </div>
-      </header>
+      </motion.div>
+    );
+  };
 
-      {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
-          <span className="inline-block mb-4 px-4 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">Trusted by 2M+ customers</span>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Banking Made
-            <span className="text-blue-600 block">Simple & Secure</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Experience next-generation banking with our comprehensive suite of financial services. From everyday banking to wealth management, we've got you covered.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="text-lg px-8 py-4 rounded-lg bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition">
-              Get Started Today
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <button className="text-lg px-8 py-4 rounded-lg border border-blue-600 text-blue-600 font-semibold bg-transparent hover:bg-blue-50 transition">
-              Explore Services
-            </button>
-          </div>
-          <div className="mt-12 flex items-center justify-center space-x-8 text-sm text-gray-500">
-            <div className="flex items-center">
-              <Shield className="w-4 h-4 mr-2 text-green-600" />
-              FDIC Insured
-            </div>
-            <div className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-              256-bit Encryption
-            </div>
-            <div className="flex items-center">
-              <Star className="w-4 h-4 mr-2 text-yellow-500" />
-              4.9/5 Rating
-            </div>
-          </div>
-        </div>
-      </section>
+  const ApplicationModal = () => {
+    if (!selectedService) return null;
 
-      {/* Services Section */}
-      <section id="services" className="py-20 px-4 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Banking Services</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive financial solutions tailored to meet your personal and business needs
-            </p>
-          </div>
+    const IconComponent = selectedService.icon;
+    const specificFields = getServiceSpecificFields();
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Personal Banking */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
-                  <CreditCard className="w-6 h-6 text-blue-600 group-hover:text-white" />
+    return (
+      <>
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
+            <div 
+              className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white rounded-t-3xl p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 bg-gradient-to-r ${selectedService.color} rounded-xl flex items-center justify-center`}>
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedService.name}</h2>
+                      <p className="text-gray-600">Application Form</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-6 h-6 text-gray-500" />
+                  </button>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">Personal Banking</h3>
-                <p className="text-gray-500 mb-4">Complete banking solutions for your everyday financial needs</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Checking & Savings Accounts</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Debit & Credit Cards</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Online & Mobile Banking</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-blue-600 text-blue-600 font-semibold bg-transparent hover:bg-blue-50 transition">Learn More</button>
               </div>
-            </div>
-            {/* Business Banking */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-600 transition-colors">
-                  <Building2 className="w-6 h-6 text-green-600 group-hover:text-white" />
+
+              {/* Form */}
+              <div className="p-6 space-y-6 text-black">
+                {/* Personal Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="w-5 h-5 mr-2" />
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                                             <input
+                         type="text"
+                         name="fullName"
+                         value={formData.fullName || ""}
+                         onChange={(e) => handleFieldChange('fullName', e.target.value)}
+                         required
+                         className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+                         placeholder="Enter your full name"
+                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                                             <input
+                         type="email"
+                         name="email"
+                         value={formData.email || ""}
+                         onChange={handleInputChange}
+                         required
+                         className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+                         placeholder="Enter your email"
+                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                                             <input
+                         type="tel"
+                         name="phone"
+                         value={formData.phone || ""}
+                         onChange={handleInputChange}
+                         required
+                         className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+                         placeholder="Enter your phone number"
+                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date of Birth <span className="text-red-500">*</span>
+                      </label>
+                                             <input
+                         type="date"
+                         name="dateOfBirth"
+                         value={formData.dateOfBirth || ""}
+                         onChange={handleInputChange}
+                         required
+                         className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black"
+                       />
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">Business Banking</h3>
-                <p className="text-gray-500 mb-4">Powerful banking tools to help your business grow and succeed</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Business Checking Accounts</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Merchant Services</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Business Loans & Lines of Credit</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-green-600 text-green-600 font-semibold bg-transparent hover:bg-green-50 transition">Learn More</button>
-              </div>
-            </div>
-            {/* Home Loans */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-600 transition-colors">
-                  <Home className="w-6 h-6 text-purple-600 group-hover:text-white" />
+
+                {/* Address & Occupation */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Home className="w-5 h-5 mr-2" />
+                    Address & Occupation
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address <span className="text-red-500">*</span>
+                      </label>
+                                             <textarea
+                         name="address"
+                         value={formData.address || ""}
+                         onChange={handleInputChange}
+                         required
+                         rows={3}
+                         className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white text-black placeholder-gray-500"
+                         placeholder="Enter your complete address"
+                       />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Occupation <span className="text-red-500">*</span>
+                        </label>
+                                                 <input
+                           type="text"
+                           name="occupation"
+                           value={formData.occupation || ""}
+                           onChange={handleInputChange}
+                           required
+                           className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+                           placeholder="Enter your occupation"
+                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Monthly Income
+                        </label>
+                                                 <select
+                           name="monthlyIncome"
+                           value={formData.monthlyIncome || ""}
+                           onChange={handleInputChange}
+                           className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black"
+                         >
+                          <option value="">Select income range</option>
+                          <option value="< ₹25,000">Less than ₹25,000</option>
+                          <option value="₹25,000 - ₹50,000">₹25,000 - ₹50,000</option>
+                          <option value="₹50,000 - ₹1,00,000">₹50,000 - ₹1,00,000</option>
+                          <option value="₹1,00,000 - ₹2,00,000">₹1,00,000 - ₹2,00,000</option>
+                          <option value="> ₹2,00,000">More than ₹2,00,000</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">Home Loans</h3>
-                <p className="text-gray-500 mb-4">Competitive rates and flexible terms for your dream home</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />First-Time Buyer Programs</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Refinancing Options</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Quick Pre-Approval</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-purple-600 text-purple-600 font-semibold bg-transparent hover:bg-purple-50 transition">Learn More</button>
-              </div>
-            </div>
-            {/* Investment Services */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-600 transition-colors">
-                  <TrendingUp className="w-6 h-6 text-orange-600 group-hover:text-white" />
+
+                {/* Service Specific Fields */}
+                {specificFields.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <FileText className="w-5 h-5 mr-2" />
+                      Service Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {specificFields.map((field, index) => (
+                        <div key={index}>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {field.label}
+                          </label>
+                          {field.type === "select" ? (
+                                                         <select
+                               name={field.name}
+                               value={formData[field.name] || ""}
+                               onChange={handleInputChange}
+                               className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black"
+                             >
+                              <option value="">Select {field.label.toLowerCase()}</option>
+                              {field.options.map((option, optIndex) => (
+                                <option key={optIndex} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          ) : (
+                                                         <input
+                               type="text"
+                               name={field.name}
+                               value={formData[field.name] || ""}
+                               onChange={handleInputChange}
+                               className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black placeholder-gray-500"
+                               placeholder={`Enter ${field.label.toLowerCase()}`}
+                             />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Information */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Information
+                  </label>
+                                     <textarea
+                     name="additionalInfo"
+                     value={formData.additionalInfo || ""}
+                     onChange={handleInputChange}
+                     rows={3}
+                     className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white text-black placeholder-gray-500"
+                     placeholder="Any additional information or specific requirements..."
+                   />
                 </div>
-                <h3 className="text-xl font-semibold mb-1">Investment Services</h3>
-                <p className="text-gray-500 mb-4">Grow your wealth with our expert investment guidance</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Portfolio Management</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Retirement Planning</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Financial Advisory</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-orange-600 text-orange-600 font-semibold bg-transparent hover:bg-orange-50 transition">Learn More</button>
-              </div>
-            </div>
-            {/* Auto Loans */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-600 transition-colors">
-                  <Car className="w-6 h-6 text-red-600 group-hover:text-white" />
+
+                {/* Submit Button */}
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className={`flex-1 px-6 py-3 bg-gradient-to-r ${selectedService.color} text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 ${
+                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Submit Application</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">Auto Loans</h3>
-                <p className="text-gray-500 mb-4">Drive away with competitive rates and flexible terms</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />New & Used Car Financing</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Refinancing Options</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Fast Approval Process</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-red-600 text-red-600 font-semibold bg-transparent hover:bg-red-50 transition">Learn More</button>
-              </div>
-            </div>
-            {/* Savings & CDs */}
-            <div className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-2xl bg-white">
-              <div className="p-6">
-                <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600 transition-colors">
-                  <PiggyBank className="w-6 h-6 text-teal-600 group-hover:text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-1">Savings & CDs</h3>
-                <p className="text-gray-500 mb-4">Secure your future with high-yield savings and certificates</p>
-                <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />High-Yield Savings</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Certificate of Deposits</li>
-                  <li className="flex items-center"><CheckCircle className="w-4 h-4 mr-2 text-green-600" />Money Market Accounts</li>
-                </ul>
-                <button className="w-full py-2 rounded-lg border border-teal-600 text-teal-600 font-semibold bg-transparent hover:bg-teal-50 transition">Learn More</button>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        )}
+      </>
+    );
+  };
 
-      {/* Featured Products */}
-      <section id="products" className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
-            <p className="text-xl text-gray-600">Our most popular banking solutions</p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div>
-              <span className="inline-block mb-4 px-4 py-1 rounded-full bg-blue-100 text-blue-800">Most Popular</span>
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">SecureBank Premium Account</h3>
-              <p className="text-lg text-gray-600 mb-6">
-                Experience premium banking with exclusive benefits, higher interest rates, and personalized service.
-              </p>
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-                  <span>No monthly maintenance fees</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-                  <span>2.5% APY on savings</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-                  <span>Free ATM access worldwide</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-                  <span>24/7 premium customer support</span>
-                </div>
-              </div>
-              <button className="mr-4 px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-                Open Account
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Banking Services
+              </h1>
+            </div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded border border-gray-300 bg-white hover:bg-red-50 hover:border-red-200 hover:text-red-700 font-semibold text-gray-700 transition"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
-              <button className="px-8 py-3 rounded-lg border border-blue-600 text-blue-600 font-semibold bg-transparent hover:bg-blue-50 transition">
-                Learn More
-              </button>
-            </div>
-            <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl p-8 text-white">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h4 className="text-2xl font-bold">SecureBank</h4>
-                  <p className="text-blue-100">Premium Account</p>
-                </div>
-                <Wallet className="w-8 h-8" />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-blue-100 text-sm">Account Balance</p>
-                  <p className="text-3xl font-bold">$25,847.92</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-blue-100 text-sm">Savings APY</p>
-                    <p className="text-xl font-semibold">2.5%</p>
-                  </div>
-                  <div>
-                    <p className="text-blue-100 text-sm">Rewards Earned</p>
-                    <p className="text-xl font-semibold">$247</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-            <p className="text-xl text-gray-600">Trusted by millions of satisfied customers</p>
-          </div>
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+          >
+            Comprehensive Banking Solutions
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl text-gray-600 max-w-3xl mx-auto"
+          >
+            Discover our wide range of banking services designed to meet all your financial needs. 
+            From digital banking to investment solutions, we're here to help you succeed.
+          </motion.p>
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border-0 shadow-lg rounded-2xl bg-white p-6">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-6">
-                "SecureBank has transformed how I manage my finances. The mobile app is intuitive and the customer service is exceptional."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                  <img src="/placeholder.svg?height=40&width=40" alt="Sarah Johnson" className="w-full h-full rounded-full" />
-                </div>
-                <div>
-                  <p className="font-semibold">Sarah Johnson</p>
-                  <p className="text-sm text-gray-500">Small Business Owner</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-0 shadow-lg rounded-2xl bg-white p-6">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-6">
-                "The investment advisory services helped me plan for retirement effectively. I couldn't be happier with the results."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                  <img src="/placeholder.svg?height=40&width=40" alt="Michael Chen" className="w-full h-full rounded-full" />
-                </div>
-                <div>
-                  <p className="font-semibold">Michael Chen</p>
-                  <p className="text-sm text-gray-500">Engineer</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-0 shadow-lg rounded-2xl bg-white p-6">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-6">
-                "Getting my home loan was seamless. The team guided me through every step and got me the best rates available."
-              </p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                  <img src="/placeholder.svg?height=40&width=40" alt="Emily Rodriguez" className="w-full h-full rounded-full" />
-                </div>
-                <div>
-                  <p className="font-semibold">Emily Rodriguez</p>
-                  <p className="text-sm text-gray-500">Teacher</p>
-                </div>
-              </div>
-            </div>
+        {/* Category Tabs */}
+        <div className="mb-8">
+          <div className="flex flex-wrap justify-center gap-2">
+            {categories.map((category) => (
+              <motion.button
+                key={category.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setActiveTab(category.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeTab === category.id
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+                }`}
+              >
+                {category.name}
+                <span className="ml-2 bg-white/20 px-2 py-1 rounded-full text-xs">
+                  {category.count}
+                </span>
+              </motion.button>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-            Join millions of customers who trust SecureBank for their financial needs. Open your account today and experience the difference.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-              Open Account Now
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </button>
-            <button className="px-8 py-3 rounded-lg border border-white text-white hover:bg-white hover:text-blue-600 bg-transparent transition">
-              Schedule Consultation
-            </button>
-          </div>
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {filteredServices.map((service) => (
+            <ServiceCard key={service.id} service={service} />
+          ))}
         </div>
-      </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h2>
-            <p className="text-xl text-gray-600">We're here to help with all your banking needs</p>
+        {/* Contact Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-3xl shadow-xl p-8 md:p-12"
+        >
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Need Help?</h3>
+            <p className="text-gray-600 text-lg">Our customer support team is here to assist you 24/7</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center border-0 shadow-lg rounded-2xl bg-white p-8">
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-gray-600 mb-4">Speak with our customer service team</p>
-              <p className="text-lg font-semibold text-blue-600">1-800-SECURE-1</p>
-              <p className="text-sm text-gray-500">24/7 Support Available</p>
+              <h4 className="font-semibold text-gray-900 mb-2">Call Us</h4>
+              <p className="text-gray-600">1800-123-4567</p>
+              <p className="text-sm text-gray-500">24/7 Support</p>
             </div>
-
-            <div className="text-center border-0 shadow-lg rounded-2xl bg-white p-8">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-gray-600 mb-4">Send us your questions or concerns</p>
-              <p className="text-lg font-semibold text-green-600">support@securebank.com</p>
-              <p className="text-sm text-gray-500">Response within 24 hours</p>
+              <h4 className="font-semibold text-gray-900 mb-2">Email Us</h4>
+              <p className="text-gray-600">support@bank.com</p>
+              <p className="text-sm text-gray-500">Quick Response</p>
             </div>
-
-            <div className="text-center border-0 shadow-lg rounded-2xl bg-white p-8">
-              <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Visit Us</h3>
-              <p className="text-gray-600 mb-4">Find a branch or ATM near you</p>
-              <p className="text-lg font-semibold text-purple-600">500+ Locations</p>
-              <p className="text-sm text-gray-500">Nationwide Coverage</p>
+              <h4 className="font-semibold text-gray-900 mb-2">Visit Us</h4>
+              <p className="text-gray-600">Find Nearest Branch</p>
+              <p className="text-sm text-gray-500">Locate ATM/Branch</p>
             </div>
           </div>
+        </motion.div>
+
+        {/* Features Section */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl p-6 shadow-lg text-center"
+          >
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-6 h-6 text-green-600" />
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">Secure Banking</h4>
+            <p className="text-gray-600 text-sm">Bank-level security with encryption and fraud protection</p>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl p-6 shadow-lg text-center"
+          >
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-6 h-6 text-blue-600" />
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">24/7 Access</h4>
+            <p className="text-gray-600 text-sm">Access your accounts anytime, anywhere</p>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-2xl p-6 shadow-lg text-center"
+          >
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star className="w-6 h-6 text-purple-600" />
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">Premium Service</h4>
+            <p className="text-gray-600 text-sm">Dedicated support and personalized solutions</p>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-2xl p-6 shadow-lg text-center"
+          >
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-6 h-6 text-orange-600" />
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">Privacy First</h4>
+            <p className="text-gray-600 text-sm">Your data is protected with industry-leading security</p>
+          </motion.div>
         </div>
-      </section>
+      </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 mt-20">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">SecureBank</span>
-              </div>
-              <p className="text-gray-400 mb-4">
-                Your trusted financial partner for over 50 years. Banking made simple, secure, and accessible.
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <Shield className="w-4 h-4" />
-                <span>FDIC Insured • Equal Housing Lender</span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Services</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Personal Banking
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Business Banking
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Loans & Credit
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Investment Services
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Customer Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Find ATM/Branch
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Security Center
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Help & FAQ
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Terms of Service
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SecureBank. All rights reserved. Member FDIC.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Application Modal */}
+      <ApplicationModal />
     </div>
   );
-}
-  
+};
+
+export default ServicePage;
