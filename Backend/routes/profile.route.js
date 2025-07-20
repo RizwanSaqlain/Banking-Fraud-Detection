@@ -1,15 +1,13 @@
 import express from 'express';
-import { getProfile, createProfile, updateProfile } from '../controller/profile.controller.js';
+import { getMyProfile, updateMyProfile } from '../controller/profile.controller.js';
+import verifyToken from '../middleware/verifyToken.js';
 
 const router = express.Router();
 
-// GET: fetch profile by email (sent as query param)
-router.get('/', getProfile);
+// Get current user's profile
+router.get('/me', verifyToken, getMyProfile);
 
-// POST: create new profile
-router.post('/', createProfile);
-
-// PUT: update profile
-router.put('/', updateProfile);
+// Update current user's profile
+router.put('/me', verifyToken, updateMyProfile);
 
 export default router;
