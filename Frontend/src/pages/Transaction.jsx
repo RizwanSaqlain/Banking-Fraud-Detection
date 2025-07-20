@@ -3,21 +3,16 @@ import axios from "axios";
 import {
   CheckCircle,
   XCircle,
-  ArrowRight,
   DollarSign,
   Send,
-  Zap,
   ShieldCheck,
-  LogOut,
   User,
   CreditCard,
   AlertCircle,
   Eye,
   EyeOff,
-  ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
 import useContextData from "../hooks/useContextData";
 import { useNavigate, Link } from "react-router-dom";
@@ -43,7 +38,6 @@ const TransactionPage = () => {
   const [currentBalance, setCurrentBalance] = useState(null);
   const [showBalance, setShowBalance] = useState(false);
 
-  const { logout } = useAuthStore();
   const { context, handleKeyDown } = useContextData();
   const navigate = useNavigate();
 
@@ -188,6 +182,7 @@ const TransactionPage = () => {
       }
 
       setStatus("Transaction Successful");
+      navigate("/transaction-history");
       setFormData({
         amount: "",
         recipientAccountNumber: "",
@@ -228,15 +223,6 @@ const TransactionPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    try {
-      logout();
-      toast.success("Logged out successfully!");
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("Logout failed. Please try again.");
-    }
-  };
 
   return (
     <div className="min-h-screen w-full pt-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">

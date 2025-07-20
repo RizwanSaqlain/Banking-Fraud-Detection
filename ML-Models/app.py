@@ -30,6 +30,8 @@ CORS(app, origins=["http://localhost:5173"])
 
 # Load Isolation Forest model
 model = joblib.load('isolation_forest.pkl')
+fraudModel = joblib.load("RandomForestFraudModel2.pkl")
+
 
 @app.route('/analyze-mouse', methods=['POST'])
 def analyze_mouse():
@@ -56,6 +58,25 @@ def analyze_mouse():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route("/predict-fraud", methods=["POST"])
+def predict_fraud():
+    data = request.get_json()
+    print(data)
+    input_features = pd.DataFrame([{
+        'type': data['type'],
+        'amount': data['amount'],
+        'oldbalanceOrg': data['oldbalanceOrig'],
+        'newbalanceOrig': data['newbalanceOrig'],
+        'oldbalanceDest': data['oldbalanceDest'],
+        'newbalanceDest': data['newbalanceDest']
+    }])
+
+    probability = fraudModel.predict(input_features)[0] # Probability of fraud
+    result = "FRAUD" if probability > 0.95 else "NOT FRAUD"
+
+    print(f"Prediction: {result}, Probability: {probability}")
+    return jsonify({"prediction": result, "probability": float(probability)})
 
 if __name__ == '__main__':
     app.run(port=5001,debug=True)

@@ -163,7 +163,7 @@ const DashboardPage = () => {
                   </Link>
 
                   <Link
-                    to="/transaction"
+                    to="/transactions"
                     className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 group"
                   >
                     <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">

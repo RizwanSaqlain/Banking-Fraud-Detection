@@ -43,7 +43,7 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     const { amount, recipientAccountNumber, purpose, note, context, useBlockchain } = req.body;
     
-    console.log('Received transaction data:', req.body);
+    // console.log('Received transaction data:', req.body);
 
     // Basic input validation
     if (!amount || !recipientAccountNumber || !purpose) {
