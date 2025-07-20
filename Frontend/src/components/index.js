@@ -6,6 +6,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import RedirectAuthenticatedUser from "./RedirectAuthenticatedUser";
 import MouseTracker from "./MouseTracker";
 import ContextLogTable from "./ContextLogTable";
+import Navbar from "./Navbar";
 
 export {
   FloatingShape,
@@ -16,4 +17,5 @@ export {
   RedirectAuthenticatedUser,
   MouseTracker,
   ContextLogTable,
+  Navbar,
 };
