@@ -6,7 +6,6 @@ export { default as DashboardPage } from "./DashboardPage";
 export { default as ForgotPasswordPage } from "./ForgotPasswordPage";
 export { default as ResetPasswordPage } from "./ResetPasswordPage";
 export { default as TransactionPage } from "./Transaction";
-export { default as BankingPage } from "./BankingPage";
 export { default as ProfilePage } from "./ProfilePage";
 export { default as ServicePage } from "./ServicePage";
 export { default as TransactionHistoryPage } from "./TransactionHistoryPage";

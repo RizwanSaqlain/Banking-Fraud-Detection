@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Phone, MapPin, CreditCard, Shield, Calendar, Save, Edit, ArrowLeft } from "lucide-react";
+import { User, Mail, Phone, MapPin, CreditCard, Shield, Calendar, Save, Edit, ArrowLeft, Home, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
@@ -140,35 +140,42 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-blue-800 to-violet-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-800 to-violet-900 text-white">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-blue-300/10 to-purple-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gray-800 bg-opacity-50 backdrop-blur-md border-b border-gray-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <Link
-                to="/bankingpage"
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition"
+                to="/dashboard"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span>Back to Banking</span>
+                <span>Back to Dashboard</span>
               </Link>
             </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded border border-gray-600 bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl hover:bg-gray-700 hover:border-gray-500 hover:text-red-400 font-semibold transition"
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 shadow-lg"
             >
               <span>Logout</span>
             </motion.button>
@@ -176,40 +183,50 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-4xl mx-auto py-8 px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-600 overflow-hidden"
+          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden"
         >
           {/* Profile Header */}
-          <div className="p-8 border-b border-gray-600">
+          <div className="p-8 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
                 <User className="w-10 h-10 text-white" />
               </div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text">
+                <h1 className="text-3xl font-bold text-gray-800">
                   {profile.fullName || "Complete Your Profile"}
                 </h1>
-                <p className="text-gray-300 mt-1">
+                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
                   {profile.email || user?.email}
                 </p>
-                <p className="text-gray-400 text-sm mt-2">
-                  {exists ? "Profile created" : "Profile not yet created"}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  {exists ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-sm font-medium">Profile Created</span>
+                    </div>
+                  ) : (
+                    <div className="text-orange-600 text-sm font-medium">
+                      Profile not yet created
+                    </div>
+                  )}
+                </div>
                 
                 {/* Profile Completion Indicator */}
                 {exists && (
                   <div className="mt-4">
-                    <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                       <span>Profile Completion</span>
-                      <span>{Math.round(calculateCompletion())}%</span>
+                      <span className="font-semibold">{Math.round(calculateCompletion())}%</span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
-                        className="bg-gradient-to-r from-blue-500 to-violet-500 h-2 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300 shadow-sm"
                         style={{ width: `${calculateCompletion()}%` }}
                       ></div>
                     </div>
@@ -221,7 +238,7 @@ export default function ProfilePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg"
                 >
                   <Edit className="w-4 h-4" />
                   Edit Profile
@@ -312,14 +329,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mt-8 pt-6 border-t border-gray-600">
+            <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
               {isEditing && (
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsEditing(false)}
-                  className="px-6 py-3 border border-gray-600 rounded-lg hover:bg-gray-700 transition"
+                  className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 text-gray-700"
                 >
                   Cancel
                 </motion.button>
@@ -330,7 +347,7 @@ export default function ProfilePage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 rounded-lg font-semibold transition disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
               >
                 {saving ? (
                   <>
@@ -365,10 +382,10 @@ function FormField({
 }) {
   return (
     <div className={fullWidth ? "md:col-span-2" : ""}>
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-        <Icon className="w-4 h-4" />
+      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+        <Icon className="w-4 h-4 text-blue-600" />
         {label}
-        {required && <span className="text-red-400">*</span>}
+        {required && <span className="text-red-500">*</span>}
       </label>
       <input
         name={name}
@@ -377,7 +394,7 @@ function FormField({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 bg-opacity-50 focus:bg-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         placeholder={`Enter ${label.toLowerCase()}`}
       />
     </div>

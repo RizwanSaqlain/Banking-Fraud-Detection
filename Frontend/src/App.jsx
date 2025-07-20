@@ -10,6 +10,7 @@ import {
   MouseTracker,
   ProtectedRoute,
   RedirectAuthenticatedUser,
+  Navbar,
 } from "./components";
 import {
   SignUpPage,
@@ -20,7 +21,6 @@ import {
   ForgotPasswordPage,
   ResetPasswordPage,
   TransactionPage,
-  BankingPage,
   ProfilePage,
   TransactionVerificationPage,
 } from "./pages";
@@ -39,6 +39,7 @@ function App() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden
       bg-gradient-to-br from-blue-800 to-violet-900 text-white"
     >
+      <Navbar />
       <FloatingShape
         color={"bg-blue-500"}
         size={"w-64 h-64"}
@@ -133,14 +134,6 @@ function App() {
           element={
             <ProtectedRoute>
               <TransactionPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bankingpage"
-          element={
-            <ProtectedRoute>
-              <BankingPage />
             </ProtectedRoute>
           }
         />

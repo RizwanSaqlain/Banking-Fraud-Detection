@@ -41,13 +41,35 @@ router.get('/balance', verifyToken, getUserBalance);
 //////////////////////////////////
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const { amount, recipient, accountNumber, ifsc, purpose, note, context, useBlockchain } = req.body;
+    const { amount, recipientAccountNumber, purpose, note, context, useBlockchain } = req.body;
     
+    console.log('Received transaction data:', req.body);
 
-    // Optional: Basic input check
-    if (!amount || !recipient || !accountNumber || !ifsc || !purpose) {
-      console.log('Missing required fields:', { amount, recipient, accountNumber, ifsc, purpose });
-      return res.status(400).json({ error: 'All fields are required' });
+    // Basic input validation
+    if (!amount || !recipientAccountNumber || !purpose) {
+      console.log('Missing required fields:', { amount, recipientAccountNumber, purpose });
+      return res.status(400).json({ error: 'Amount, recipient account number, and purpose are required' });
+    }
+
+    // Find recipient user by account number
+    const recipientUser = await User.findOne({ accountNumber: recipientAccountNumber });
+    if (!recipientUser) {
+      return res.status(404).json({ error: 'Recipient account not found' });
+    }
+
+    // Check if sender has sufficient balance
+    const sender = await User.findById(req.userId);
+    if (!sender) {
+      return res.status(404).json({ error: 'Sender account not found' });
+    }
+
+    if (sender.balance < amount) {
+      return res.status(400).json({ error: 'Insufficient balance for this transaction' });
+    }
+
+    // Prevent self-transaction
+    if (recipientUser._id.toString() === req.userId) {
+      return res.status(400).json({ error: 'Cannot send money to yourself' });
     }
 
     // Context-based security check
@@ -70,7 +92,7 @@ router.post('/', verifyToken, async (req, res) => {
             user.name,
             context,
             risk,
-            { amount, recipient, accountNumber, purpose }
+            { amount, recipient: recipientUser.name, accountNumber: recipientAccountNumber, purpose }
           );
           return res.status(403).json({
             success: false,
@@ -96,9 +118,9 @@ router.post('/', verifyToken, async (req, res) => {
           user.transactionVerificationExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
           user.pendingTransaction = {
             amount,
-            recipient,
-            accountNumber,
-            ifsc,
+            recipient: recipientUser.name,
+            accountNumber: recipientAccountNumber,
+            ifsc: recipientUser.ifscCode,
             purpose,
             note,
             context,
@@ -116,7 +138,7 @@ router.post('/', verifyToken, async (req, res) => {
             user.name,
             verificationCode,
             context,
-            { amount, recipient, accountNumber, purpose }
+            { amount, recipient: recipientUser.name, accountNumber: recipientAccountNumber, purpose }
           );
 
           return res.status(200).json({
@@ -135,22 +157,32 @@ router.post('/', verifyToken, async (req, res) => {
       }
     }
 
+    // Update balances
+    await User.findByIdAndUpdate(req.userId, { $inc: { balance: -amount } });
+    await User.findByIdAndUpdate(recipientUser._id, { $inc: { balance: amount } });
+
     const newTransaction = new Transaction({
       userId: req.userId,
       amount,
-      recipient,
-      accountNumber,
-      ifsc,
+      recipient: recipientUser.name,
+      recipientId: recipientUser._id,
+      accountNumber: recipientAccountNumber,
+      ifsc: recipientUser.ifscCode,
       purpose,
       note,
       date: new Date(),
-      status: 'Success',
+      status: 'Success (No Blockchain)',
     });
 
     console.log('Saving transaction:', newTransaction);
     await newTransaction.save();
     console.log('Transaction saved successfully');
-    res.status(201).json(newTransaction);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Transaction completed successfully',
+      transaction: newTransaction
+    });
   } catch (err) {
     console.error('Transaction Error:', err);
     res.status(500).json({ error: 'Transaction Failed' });
