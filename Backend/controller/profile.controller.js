@@ -1,37 +1,42 @@
 import Profile from '../models/profile.model.js';
+import User from '../models/user.model.js';
 
-export const getProfile = async (req, res) => {
+export const getMyProfile = async (req, res) => {
   try {
-    const profile = await Profile.findOne({ email: req.query.email });
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    res.json(profile);
+    const user = await User.findById(req.userId).select('name email');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    let profile = await Profile.findOne({ user: req.userId });
+    if (!profile) {
+      profile = await Profile.create({ user: req.userId });
+    }
+
+    const profileObj = profile.toObject();
+    profileObj.name = user.name;
+    profileObj.email = user.email;
+    res.json(profileObj);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-export const createProfile = async (req, res) => {
+export const updateMyProfile = async (req, res) => {
   try {
-    const existing = await Profile.findOne({ email: req.body.email });
-    if (existing) return res.status(400).json({ message: 'Profile already exists.' });
-    const profile = new Profile(req.body);
+    let profile = await Profile.findOne({ user: req.userId });
+    if (!profile) {
+      profile = await Profile.create({ user: req.userId });
+    }
+    // Only update fields that are not name/email
+    const { aadhaar, ifsc, address, fatherName, dob, branchName } = req.body;
+    if (aadhaar !== undefined) profile.aadhaar = aadhaar;
+    if (ifsc !== undefined) profile.ifsc = ifsc;
+    if (address !== undefined) profile.address = address;
+    if (fatherName !== undefined) profile.fatherName = fatherName;
+    if (dob !== undefined) profile.dob = dob;
+    if (branchName !== undefined) profile.branchName = branchName;
     await profile.save();
-    res.status(201).json(profile);
+    res.json({ message: 'Profile updated successfully' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-export const updateProfile = async (req, res) => {
-  try {
-    const profile = await Profile.findOneAndUpdate(
-      { email: req.body.email },        // find by email
-      req.body,                         // update with new data
-      { new: true, upsert: false }
-    );
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
-    res.json(profile);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
