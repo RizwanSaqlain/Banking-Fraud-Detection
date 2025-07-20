@@ -38,7 +38,7 @@ export function evaluateContext(context, userProfile) {
     console.log("Risk: Location not matched or missing:", context.location);
   }
 
-  if (typeof context.typingSpeed !== "number" || context.typingSpeed < 300) {
+  if (typeof context.typingSpeed !== "number" || context.typingSpeed < 200) {
     riskScore += 1;
     console.log("Risk: Typing speed too low or missing:", context.typingSpeed);
   }

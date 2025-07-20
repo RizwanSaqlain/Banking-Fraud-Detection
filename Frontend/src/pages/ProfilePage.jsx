@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  User, Mail, Phone, MapPin, CreditCard,
-  Shield, Calendar, Save, Edit, ArrowLeft
-} from "lucide-react";
+
+import { User, Mail, Phone, MapPin, CreditCard, Shield, Calendar, Save, Edit, ArrowLeft, Home, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
@@ -116,29 +114,43 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-blue-800 to-violet-900 flex items-center justify-center">
-        <p className="text-white text-lg">Loading profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-800 to-violet-900 text-white">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-blue-300/10 to-purple-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-blue-900 bg-opacity-50 backdrop-blur-md border-b border-blue-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div className="relative z-10 sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center h-16">
-            <Link
-              to="/bankingpage"
-              className="flex items-center gap-2 text-gray-300 hover:text-white"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back to Banking
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Dashboard</span>
+              </Link>
+            </div>
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
-              className="px-4 py-2 rounded bg-blue-700 hover:bg-blue-600 text-white"
+
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 shadow-lg"
             >
               Logout
             </motion.button>
@@ -146,8 +158,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto py-10 px-6">
+
+      <div className="relative z-10 max-w-4xl mx-auto py-8 px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -172,6 +184,7 @@ export default function ProfilePage() {
                   <div className="flex justify-between text-sm text-blue-200 mb-1">
                     <span>Profile Completion</span>
                     <span>{calculateCompletion()}%</span>
+
                   </div>
                   <div className="w-full bg-blue-900 border border-blue-700 rounded-full h-2 overflow-hidden">
                     <div className="bg-blue-400 h-2" style={{ width: `${calculateCompletion()}%` }}></div>
@@ -182,6 +195,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => setIsEditing(true)}
                   className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+
                 >
                   <Edit className="inline-block mr-1 w-4 h-4" />
                   Edit
@@ -205,6 +219,7 @@ export default function ProfilePage() {
             <div className="col-span-full mt-8 flex gap-4">
               {isEditing && (
                 <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 border border-blue-500 rounded hover:bg-blue-700">
+
                   Cancel
                 </button>
               )}
@@ -212,6 +227,7 @@ export default function ProfilePage() {
                 type="submit"
                 disabled={saving}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 rounded"
+
               >
                 {saving ? "Saving..." : exists ? "Update Profile" : "Save Profile"}
               </button>
@@ -229,6 +245,7 @@ function FormField({ label, name, value, icon: Icon, onChange, disabled = false,
       <label className="flex items-center gap-2 text-sm text-blue-200 mb-1">
         <Icon className="w-4 h-4" />
         {label}
+
       </label>
       <input
         type={type}

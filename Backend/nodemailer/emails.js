@@ -1,4 +1,5 @@
 import { sendEmail } from "./nodemailer.config.js";
+import {getLocationName} from "../utils/getLocationName.js"
 import {
   ACCOUNT_DELETION_CONFIRMATION_TEMPLATE,
   NEWDEVICE_LOGIN_ALERT_TEMPLATE,
@@ -8,6 +9,8 @@ import {
   WELCOME_EMAIL_TEMPLATE,
   SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE,
   TWO_FACTOR_AUTH_TEMPLATE,
+  SUSPICIOUS_TRANSACTION_ALERT_TEMPLATE,
+  TRANSACTION_VERIFICATION_TEMPLATE,
 } from "./emailTemplates.js";
 
 export const sendVerificationEmail = async (email, verificationCode) => {
@@ -138,13 +141,16 @@ export const sendSuspiciousActivityWarning = async (
       SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE.replace("{name}", name)
         .replace("{device}", context.device)
         .replace("{browser}", context.browser)
-        .replace("{location}", "Unknown Location")
+        .replace("{location}", await getLocationName(context.location.latitude, context.location.longitude))
         .replace("{ip}", context.ip)
         .replace("{time}", new Date().toLocaleString())
         .replace("{riskScore}", riskScore.toString())
     );
 
-    console.log("Suspicious activity warning email sent successfully:", response);
+    console.log(
+      "Suspicious activity warning email sent successfully:",
+      response
+    );
   } catch (error) {
     console.error("Error sending suspicious activity warning email:", error);
     throw new Error("Failed to send suspicious activity warning email");
@@ -164,7 +170,10 @@ export const sendTwoFactorAuthEmail = async (
       TWO_FACTOR_AUTH_TEMPLATE.replace("{name}", name)
         .replace("{verificationCode}", verificationCode)
         .replace("{device}", context.device)
-        .replace("{location}", "Unknown Location")
+        .replace(
+          "{location}",
+          await getLocationName(context.location.latitude, context.location.longitude)
+        )
         .replace("{time}", new Date().toLocaleString())
     );
 
@@ -172,5 +181,71 @@ export const sendTwoFactorAuthEmail = async (
   } catch (error) {
     console.error("Error sending two-factor authentication email:", error);
     throw new Error("Failed to send two-factor authentication email");
+  }
+};
+
+export const sendSuspiciousTransactionAlert = async (
+  email,
+  name,
+  context,
+  riskScore,
+  transactionDetails
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "⚠️ Suspicious Transaction Activity Detected",
+      SUSPICIOUS_TRANSACTION_ALERT_TEMPLATE.replace("{name}", name)
+        .replace("{amount}", transactionDetails.amount)
+        .replace("{recipient}", transactionDetails.recipient)
+        .replace("{accountNumber}", transactionDetails.accountNumber)
+        .replace("{purpose}", transactionDetails.purpose)
+        .replace("{device}", context.device)
+        .replace("{browser}", context.browser)
+        .replace(
+          "{location}",
+          await getLocationName(context.location.latitude, context.location.longitude)
+        )
+        .replace("{ip}", context.ip)
+        .replace("{time}", new Date().toLocaleString())
+        .replace("{riskScore}", riskScore.toString())
+    );
+
+    console.log("Suspicious transaction alert email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending suspicious transaction alert email:", error);
+    throw new Error("Failed to send suspicious transaction alert email");
+  }
+};
+
+export const sendTransactionVerificationEmail = async (
+  email,
+  name,
+  verificationCode,
+  context,
+  transactionDetails
+) => {
+  try {
+    const response = await sendEmail(
+      email,
+      "🔐 Transaction Verification Required",
+      TRANSACTION_VERIFICATION_TEMPLATE.replace("{name}", name)
+        .replace("{verificationCode}", verificationCode)
+        .replace("{amount}", transactionDetails.amount)
+        .replace("{recipient}", transactionDetails.recipient)
+        .replace("{accountNumber}", transactionDetails.accountNumber)
+        .replace("{purpose}", transactionDetails.purpose)
+        .replace("{device}", context.device)
+        .replace(
+          "{location}",
+          await getLocationName(context.location.latitude, context.location.longitude)
+        )
+        .replace("{time}", new Date().toLocaleString())
+    );
+
+    console.log("Transaction verification email sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending transaction verification email:", error);
+    throw new Error("Failed to send transaction verification email");
   }
 };
