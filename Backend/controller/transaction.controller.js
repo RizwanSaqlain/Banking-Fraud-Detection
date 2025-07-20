@@ -6,11 +6,45 @@ import { evaluateContext } from '../utils/contextEvaluator.js';
 import { updateContextProfile } from '../utils/updateContextProfile.js';
 import { sendSuspiciousTransactionAlert, sendTransactionVerificationEmail } from '../nodemailer/emails.js';
 import { generateVerificationCode } from '../utils/generateVerificationCode.js';
+import { detectFraud } from '../utils/detectFraud.js';
+
+// Helper function to update user balances
+const updateBalances = async (senderId, recipientId, amount) => {
+  try {
+    // Update sender balance (deduct amount)
+    await User.findByIdAndUpdate(senderId, {
+      $inc: { balance: -amount }
+    });
+
+    // Update recipient balance (add amount)
+    await User.findByIdAndUpdate(recipientId, {
+      $inc: { balance: amount }
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error updating balances:', error);
+    return false;
+  }
+};
+
+// Helper function to check if user has sufficient balance
+const checkSufficientBalance = async (userId, amount) => {
+  try {
+    const user = await User.findById(userId);
+    return user && user.balance >= amount;
+  } catch (error) {
+    console.error('Error checking balance:', error);
+    return false;
+  }
+};
 
 // Get all transactions
 export const getUserTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({ userId: req.userId }).sort({ date: -1 });
+    const transactions = await Transaction.find({ userId: req.userId })
+      .populate('recipientId', 'name accountNumber ifscCode')
+      .sort({ date: -1 });
     res.status(200).json(transactions);
   } catch (err) {
     console.error('Error fetching transactions:', err);
@@ -18,15 +52,116 @@ export const getUserTransactions = async (req, res) => {
   }
 };
 
+// Get incoming transactions (where user is the recipient)
+export const getIncomingTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find({ recipientId: req.userId })
+      .populate('userId', 'name accountNumber ifscCode')
+      .sort({ date: -1 });
+    res.status(200).json(transactions);
+  } catch (err) {
+    console.error('Error fetching incoming transactions:', err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+};
+
+// Get transaction statistics for user
+export const getTransactionStats = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    // Get outgoing transactions
+    const outgoingTransactions = await Transaction.find({ userId });
+    const outgoingTotal = outgoingTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const outgoingCount = outgoingTransactions.length;
+    
+    // Get incoming transactions
+    const incomingTransactions = await Transaction.find({ recipientId: userId });
+    const incomingTotal = incomingTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const incomingCount = incomingTransactions.length;
+    
+    // Get recent transactions (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentOutgoing = await Transaction.find({
+      userId,
+      date: { $gte: thirtyDaysAgo }
+    });
+    const recentIncoming = await Transaction.find({
+      recipientId: userId,
+      date: { $gte: thirtyDaysAgo }
+    });
+    
+    const stats = {
+      outgoing: {
+        total: outgoingTotal,
+        count: outgoingCount,
+        recentCount: recentOutgoing.length,
+        recentTotal: recentOutgoing.reduce((sum, tx) => sum + tx.amount, 0)
+      },
+      incoming: {
+        total: incomingTotal,
+        count: incomingCount,
+        recentCount: recentIncoming.length,
+        recentTotal: recentIncoming.reduce((sum, tx) => sum + tx.amount, 0)
+      },
+      netFlow: incomingTotal - outgoingTotal
+    };
+    
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error('Error fetching transaction stats:', err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+};
+
+// Get user balance
+export const getUserBalance = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('balance name accountNumber');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.status(200).json({
+      success: true,
+      balance: user.balance,
+      name: user.name,
+      accountNumber: user.accountNumber
+    });
+  } catch (err) {
+    console.error('Error fetching user balance:', err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+};
+
 // Create transaction with blockchain (fallback to MongoDB if contract misconfigured)
 export const createTransaction = async (req, res) => {
   try {
-    const { amount, recipient, accountNumber, ifsc, purpose, note, context, useBlockchain } = req.body;
+    const { amount, recipientAccountNumber, purpose, note, context, useBlockchain } = req.body;
 
     // 1. Ensure contract is configured
     // Validate required fields
-    if (!amount || !recipient || !accountNumber || !ifsc || !purpose) {
-      return res.status(400).json({ error: 'All required fields are missing' });
+    if (!amount || !recipientAccountNumber || !purpose) {
+      return res.status(400).json({ error: 'Amount, recipient account number, and purpose are required' });
+    }
+
+    // Find recipient user by account number
+    const recipientUser = await User.findOne({ accountNumber: recipientAccountNumber });
+    if (!recipientUser) {
+      return res.status(404).json({ error: 'Recipient account not found' });
+    }
+
+    // Check if sender has sufficient balance
+    const hasSufficientBalance = await checkSufficientBalance(req.userId, amount);
+    if (!hasSufficientBalance) {
+      return res.status(400).json({ error: 'Insufficient balance for this transaction' });
+    }
+
+    // Prevent self-transaction
+    if (recipientUser._id.toString() === req.userId) {
+      return res.status(400).json({ error: 'Cannot send money to yourself' });
     }
 
     // 2. Context-based security check
@@ -43,14 +178,14 @@ export const createTransaction = async (req, res) => {
 
         // Risk-based transaction logic
         if (risk >= 10) {
-          // Block transaction and send warning email for high risk
-          await sendSuspiciousTransactionAlert(
-            user.email,
-            user.name,
-            context,
-            risk,
-            { amount, recipient, accountNumber, purpose }
-          );
+                  // Block transaction and send warning email for high risk
+        await sendSuspiciousTransactionAlert(
+          user.email,
+          user.name,
+          context,
+          risk,
+          { amount, recipient: recipientUser.name, accountNumber: recipientAccountNumber, purpose }
+        );
           return res.status(403).json({
             success: false,
             message: "Suspicious activity detected, transaction blocked for your security. Check your email for details.",
@@ -75,9 +210,9 @@ export const createTransaction = async (req, res) => {
           user.transactionVerificationExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
           user.pendingTransaction = {
             amount,
-            recipient,
-            accountNumber,
-            ifsc,
+            recipient: recipientUser.name,
+            accountNumber: recipientAccountNumber,
+            ifsc: recipientUser.ifscCode,
             purpose,
             note,
             context,
@@ -91,7 +226,7 @@ export const createTransaction = async (req, res) => {
             user.name,
             verificationCode,
             context,
-            { amount, recipient, accountNumber, purpose }
+            { amount, recipient: recipientUser.name, accountNumber: recipientAccountNumber, purpose }
           );
 
           return res.status(200).json({
@@ -114,12 +249,20 @@ export const createTransaction = async (req, res) => {
     if (!contract?.methods?.createTransaction || typeof contract.methods.createTransaction !== 'function') {
       console.error("Blockchain contract not configured! ABI or address may be wrong.");
       // Fallback: Just save to MongoDB with "No Blockchain" status
+      
+      // Update balances
+      const balanceUpdated = await updateBalances(req.userId, recipientUser._id, amount);
+      if (!balanceUpdated) {
+        return res.status(500).json({ error: 'Failed to update balances' });
+      }
+
       const newTransaction = new Transaction({
         userId: req.userId,
         amount,
-        recipient,
-        accountNumber,
-        ifsc,
+        recipient: recipientUser.name,
+        recipientId: recipientUser._id,
+        accountNumber: recipientAccountNumber,
+        ifsc: recipientUser.ifscCode,
         purpose,
         note,
         date: new Date(),
@@ -141,7 +284,7 @@ export const createTransaction = async (req, res) => {
     let tx;
     try {
       tx = await contract.methods
-        .createTransaction(recipient, amount)
+        .createTransaction(recipientUser.name, amount)
         .send({ from: senderAddress, gas: 300000 });
     } catch (err) {
       return res.status(500).json({ error: "Blockchain transaction creation failed: " + err.message });
@@ -162,13 +305,26 @@ export const createTransaction = async (req, res) => {
       return res.status(500).json({ error: "Blockchain transaction validation failed: " + err.message });
     }
 
-    // 7. Save transaction to DB with blockchain status
+    // 7. Fraud detection using AI
+    const isFraud = await detectFraud(amount, recipientUser._id, req.userId);
+    if (isFraud) {
+      return res.status(400).json({ error: "Fraud detected" });
+    }
+
+    // 8. Update balances
+    const balanceUpdated = await updateBalances(req.userId, recipientUser._id, amount);
+    if (!balanceUpdated) {
+      return res.status(500).json({ error: 'Failed to update balances' });
+    }
+
+    // 9. Save transaction to DB with blockchain status
     const newTransaction = new Transaction({
       userId: req.userId,
       amount,
-      recipient,
-      accountNumber,
-      ifsc,
+      recipient: recipientUser.name,
+      recipientId: recipientUser._id,
+      accountNumber: recipientAccountNumber,
+      ifsc: recipientUser.ifscCode,
       purpose,
       note,
       date: new Date(),
@@ -223,17 +379,31 @@ export const verifyTransaction = async (req, res) => {
 
     // Process the transaction
     const { amount, recipient, accountNumber, ifsc, purpose, note, useBlockchain } = pendingTransaction;
+    
+    // Find recipient user by account number (in case it was stored differently)
+    const recipientUser = await User.findOne({ accountNumber });
+    if (!recipientUser) {
+      return res.status(404).json({ error: 'Recipient account not found' });
+    }
 
     // Check if contract is properly configured
     if (!contract?.methods?.createTransaction || typeof contract.methods.createTransaction !== 'function') {
       console.error("Blockchain contract not configured! ABI or address may be wrong.");
+      
+      // Update balances
+      const balanceUpdated = await updateBalances(req.userId, recipientUser._id, amount);
+      if (!balanceUpdated) {
+        return res.status(500).json({ error: 'Failed to update balances' });
+      }
+      
       // Fallback: Just save to MongoDB with "No Blockchain" status
       const newTransaction = new Transaction({
         userId: req.userId,
         amount,
-        recipient,
+        recipient: recipientUser.name,
+        recipientId: recipientUser._id,
         accountNumber,
-        ifsc,
+        ifsc: recipientUser.ifscCode,
         purpose,
         note,
         date: new Date(),
@@ -255,7 +425,7 @@ export const verifyTransaction = async (req, res) => {
       let tx;
       try {
         tx = await contract.methods
-          .createTransaction(recipient, amount)
+          .createTransaction(recipientUser.name, amount)
           .send({ from: senderAddress, gas: 300000 });
       } catch (err) {
         return res.status(500).json({ error: "Blockchain transaction creation failed: " + err.message });
@@ -274,12 +444,19 @@ export const verifyTransaction = async (req, res) => {
         return res.status(500).json({ error: "Blockchain transaction validation failed: " + err.message });
       }
 
+      // Update balances
+      const balanceUpdated = await updateBalances(req.userId, recipientUser._id, amount);
+      if (!balanceUpdated) {
+        return res.status(500).json({ error: 'Failed to update balances' });
+      }
+
       const newTransaction = new Transaction({
         userId: req.userId,
         amount,
-        recipient,
+        recipient: recipientUser.name,
+        recipientId: recipientUser._id,
         accountNumber,
-        ifsc,
+        ifsc: recipientUser.ifscCode,
         purpose,
         note,
         date: new Date(),
@@ -293,13 +470,20 @@ export const verifyTransaction = async (req, res) => {
       await newTransaction.save();
       return res.status(201).json(cleanBigInt(newTransaction.toObject ? newTransaction.toObject() : newTransaction));
     } else {
+      // Update balances
+      const balanceUpdated = await updateBalances(req.userId, recipientUser._id, amount);
+      if (!balanceUpdated) {
+        return res.status(500).json({ error: 'Failed to update balances' });
+      }
+      
       // Save to MongoDB only
       const newTransaction = new Transaction({
         userId: req.userId,
         amount,
-        recipient,
+        recipient: recipientUser.name,
+        recipientId: recipientUser._id,
         accountNumber,
-        ifsc,
+        ifsc: recipientUser.ifscCode,
         purpose,
         note,
         date: new Date(),

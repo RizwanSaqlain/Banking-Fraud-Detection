@@ -109,6 +109,22 @@ const userSchema = new mongoose.Schema(
     address: { type: String, default: "" },
     phone: { type: String, default: "" },
     dob: { type: Date },
+    
+    // Banking details
+    accountNumber: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    ifscCode: {
+      type: String,
+      required: true,
+    },
+    balance: {
+      type: Number,
+      default: 10000, // Starting balance of ₹10,000
+      min: 0,
+    },
   },
   { timestamps: true }
 );

@@ -19,9 +19,7 @@ import { useNavigate } from "react-router-dom";
 const TransactionPage = () => {
   const [formData, setFormData] = useState({
     amount: "",
-    recipient: "",
-    accountNumber: "",
-    ifsc: "",
+    recipientAccountNumber: "",
     purpose: "",
     note: "",
   });
@@ -33,6 +31,10 @@ const TransactionPage = () => {
   const [chainStatus, setChainStatus] = useState("");
   const [animationStep, setAnimationStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recipientInfo, setRecipientInfo] = useState(null);
+  const [isLoadingRecipient, setIsLoadingRecipient] = useState(false);
+  const [myAccountInfo, setMyAccountInfo] = useState(null);
+  const [currentBalance, setCurrentBalance] = useState(null);
 
   const { logout } = useAuthStore();
   const { context, handleKeyDown } = useContextData();
@@ -45,11 +47,66 @@ const TransactionPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch current user's account details and balance
+  useEffect(() => {
+    const fetchMyAccountDetails = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const [accountResponse, balanceResponse] = await Promise.all([
+          axios.get("http://localhost:5000/api/auth/my-account", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:5000/api/transactions/balance", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
+        
+        if (accountResponse.data.success) {
+          setMyAccountInfo(accountResponse.data.accountDetails);
+        }
+        
+        if (balanceResponse.data.success) {
+          setCurrentBalance(balanceResponse.data.balance);
+        }
+      } catch (error) {
+        console.error('Error fetching account details:', error);
+      }
+    };
+
+    fetchMyAccountDetails();
+  }, []);
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+    
+    // If recipient account number is entered, fetch recipient details
+    if (e.target.name === 'recipientAccountNumber' && e.target.value.length === 12) {
+      fetchRecipientDetails(e.target.value);
+    } else if (e.target.name === 'recipientAccountNumber' && e.target.value.length !== 12) {
+      setRecipientInfo(null);
+    }
+  };
+
+  const fetchRecipientDetails = async (accountNumber) => {
+    if (accountNumber.length !== 12) return;
+    
+    setIsLoadingRecipient(true);
+    try {
+      const response = await axios.get(`http://localhost:5000/api/auth/user/${accountNumber}`);
+      if (response.data.success) {
+        setRecipientInfo(response.data.user);
+      } else {
+        setRecipientInfo(null);
+      }
+    } catch (error) {
+      console.error('Error fetching recipient details:', error);
+      setRecipientInfo(null);
+    } finally {
+      setIsLoadingRecipient(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -57,6 +114,13 @@ const TransactionPage = () => {
     
     // Prevent multiple submissions
     if (isSubmitting) {
+      return;
+    }
+    
+    // Check if user has sufficient balance
+    if (currentBalance !== null && Number(formData.amount) > currentBalance) {
+      setError("Insufficient balance for this transaction");
+      toast.error("Insufficient balance for this transaction");
       return;
     }
     
@@ -102,9 +166,7 @@ const TransactionPage = () => {
       setStatus("Transaction Successful");
       setFormData({
         amount: "",
-        recipient: "",
-        accountNumber: "",
-        ifsc: "",
+        recipientAccountNumber: "",
         purpose: "",
         note: "",
       });
@@ -191,50 +253,47 @@ const TransactionPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6" onKeyDown={handleKeyDown}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Recipient Name{" "}
+                  Recipient Account Number{" "}
                   <span className="text-red-500" title="Required">
                     *
                   </span>
                 </label>
                 <input
                   type="text"
-                  name="recipient"
-                  value={formData.recipient}
+                  name="recipientAccountNumber"
+                  value={formData.recipientAccountNumber}
                   onChange={handleChange}
                   required
-                  placeholder="e.g. Ramesh Kumar"
+                  placeholder="e.g. 123456789012"
                   className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Account Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="accountNumber"
-                  value={formData.accountNumber}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. 1234567890"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  IFSC Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="ifsc"
-                  value={formData.ifsc}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. SBIN0001234"
-                  className="w-full border border-gray-300 px-4 py-3 rounded-xl uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white"
-                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter the 12-digit account number of the recipient
+                </p>
+                
+                {/* Recipient Info Display */}
+                {isLoadingRecipient && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm text-blue-700">Loading recipient details...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {recipientInfo && !isLoadingRecipient && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Recipient Found</span>
+                    </div>
+                    <div className="text-sm text-green-700">
+                      <p><strong>Name:</strong> {recipientInfo.name}</p>
+                      <p><strong>Account:</strong> {recipientInfo.accountNumber}</p>
+                      <p><strong>IFSC:</strong> {recipientInfo.ifscCode}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -323,6 +382,39 @@ const TransactionPage = () => {
               <div className="mt-6 flex items-center justify-center text-red-600 gap-2 text-sm bg-red-50 py-3 px-4 rounded-xl border border-red-200">
                 <XCircle className="w-5 h-5" />
                 {error}
+              </div>
+            )}
+
+            {/* My Account Details */}
+            {myAccountInfo && (
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  My Account Details
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">Name:</span>
+                    <span className="font-medium text-blue-900">{myAccountInfo.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">Account Number:</span>
+                    <span className="font-mono font-medium text-blue-900">{myAccountInfo.accountNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">IFSC Code:</span>
+                    <span className="font-mono font-medium text-blue-900">{myAccountInfo.ifscCode}</span>
+                  </div>
+                  {currentBalance !== null && (
+                    <div className="flex justify-between border-t border-blue-200 pt-2 mt-2">
+                      <span className="text-blue-700 font-semibold">Current Balance:</span>
+                      <span className="font-bold text-green-700">₹{currentBalance.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  Share these details with others to receive money
+                </p>
               </div>
             )}
           </div>

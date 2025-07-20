@@ -10,6 +10,9 @@ import { sendSuspiciousTransactionAlert, sendTransactionVerificationEmail } from
 import { generateVerificationCode } from '../utils/generateVerificationCode.js';
 import {
   getUserTransactions,
+  getIncomingTransactions,
+  getTransactionStats,
+  getUserBalance,
   createTransaction,
   verifyTransaction, // ✅ Controller with blockchain integration
 } from '../controller/transaction.controller.js';
@@ -23,6 +26,15 @@ const router = express.Router();
 // Use controller to get user's transactions
 router.get('/', verifyToken, getUserTransactions);
 
+// Get incoming transactions (where user is the recipient)
+router.get('/incoming', verifyToken, getIncomingTransactions);
+
+// Get transaction statistics
+router.get('/stats', verifyToken, getTransactionStats);
+
+// Get user balance
+router.get('/balance', verifyToken, getUserBalance);
+
 //////////////////////////////////
 // ✅ ROUTE 2: BASIC Create Transaction (MongoDB only) with Context Checking
 // You already had this, and we keep it. Users who don't use blockchain can still make transactions.
@@ -31,8 +43,6 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     const { amount, recipient, accountNumber, ifsc, purpose, note, context, useBlockchain } = req.body;
     
-    console.log('Transaction data received:', { amount, recipient, accountNumber, ifsc, purpose, note });
-    console.log('User ID:', req.userId);
 
     // Optional: Basic input check
     if (!amount || !recipient || !accountNumber || !ifsc || !purpose) {
