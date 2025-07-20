@@ -18,6 +18,7 @@ import {
   sendTwoFactorAuthEmail,
 } from "../nodemailer/emails.js";
 import { updateContextProfile } from "../utils/updateContextProfile.js";
+import { generateAccountDetails } from "../utils/generateAccountDetails.js";
 
 export const signup = async (req, res) => {
   const { email, password, name, context, captcha } = req.body;
@@ -42,12 +43,17 @@ export const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = generateVerificationCode();
+    
+    // Generate unique account details
+    const accountDetails = generateAccountDetails();
 
     const isHuman = await verifyCaptcha(captcha);
     console.log("Captcha verification result:", isHuman);
     if (!isHuman) return res.status(403).json({ error: "Bot detected" });
 
     const user = new User({
+      accountNumber: accountDetails.accountNumber,
+      ifscCode: accountDetails.ifscCode,
       email,
       password: hashedPassword,
       name,
@@ -406,6 +412,68 @@ export const deleteAccount = async (req, res) => {
       .json({ success: true, message: "Account deleted successfully" });
   } catch (error) {
     console.error("Error deleting account:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Get current user's account details
+export const getMyAccountDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      accountDetails: {
+        name: user.name,
+        accountNumber: user.accountNumber,
+        ifscCode: user.ifscCode,
+        balance: user.balance
+      }
+    });
+  } catch (error) {
+    console.error("Error getting account details:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Find user by account number
+export const findUserByAccountNumber = async (req, res) => {
+  try {
+    const { accountNumber } = req.params;
+    
+    if (!accountNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Account number is required"
+      });
+    }
+
+    const user = await User.findOne({ accountNumber }).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this account number"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        name: user.name,
+        accountNumber: user.accountNumber,
+        ifscCode: user.ifscCode
+      }
+    });
+  } catch (error) {
+    console.error("Error finding user by account number:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

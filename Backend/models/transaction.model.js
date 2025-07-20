@@ -10,6 +10,11 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  recipientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   accountNumber: {
     type: String,
     required: true,
@@ -50,7 +55,7 @@ const transactionSchema = new mongoose.Schema({
   },
   chainStatus: {
     type: String,
-    enum: ['Pending', 'Confirmed', 'Failed', 'NotConfigured'],
+    enum: ['Pending', 'Confirmed', 'Failed', 'NotConfigured', 'OffChain', 'OnChain'],
     default: 'Pending',
   },
   blockchainLog: {

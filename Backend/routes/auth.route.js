@@ -10,6 +10,8 @@ import {
   checkAuth,
   deleteAccount,
   verifyTwoFactorAuth,
+  findUserByAccountNumber,
+  getMyAccountDetails,
 } from "../controller/auth.controller.js";
 import verifyToken from "../middleware/verifyToken.js";
 
@@ -28,5 +30,11 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
 router.delete("/delete-account", verifyToken, deleteAccount);
+
+// Find user by account number (public route for transaction lookup)
+router.get("/user/:accountNumber", findUserByAccountNumber);
+
+// Get current user's account details (protected route)
+router.get("/my-account", verifyToken, getMyAccountDetails);
 
 export default router;

@@ -22,6 +22,7 @@ import {
   TransactionPage,
   BankingPage,
   ProfilePage,
+  TransactionVerificationPage,
 } from "./pages";
 
 function App() {
@@ -127,7 +128,6 @@ function App() {
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />
-
         <Route
           path="/transactions"
           element={
@@ -157,6 +157,14 @@ function App() {
           element={
             <ProtectedRoute>
               <TransactionHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/transaction-verification"
+          element={
+            <ProtectedRoute>
+              <TransactionVerificationPage />
             </ProtectedRoute>
           }
         />
