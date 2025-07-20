@@ -123,7 +123,7 @@ export default function TransactionHistoryPage() {
         Your transaction history will appear here once you start making transfers.
       </p>
       <Link
-        to="/transaction"
+        to="/transactions"
         className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg"
       >
         <DollarSign className="w-4 h-4" />

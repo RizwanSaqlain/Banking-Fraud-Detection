@@ -15,12 +15,6 @@ const verifyToken = (req, res, next) => {
   } catch (error) {
     console.error("Token verification error:", error);
     return res.status(400).json({ message: "Invalid token." });
-
-    req.userId = decoded.userId; // Make sure your JWT payload uses 'userId'
-    next();
-  } catch (err) {
-    res.status(401).json({ error: "Token is not valid" });
-
   }
 };
 

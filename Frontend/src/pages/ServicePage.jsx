@@ -287,7 +287,7 @@ const ServicePage = () => {
         </AnimatePresence>
       </div>
       {/* Decorative SVG or background shapes for bank feel */}
-      <svg
+      {/* <svg
         className="absolute bottom-0 left-0 w-full h-40 z-0"
         viewBox="0 0 1440 320"
       >
@@ -296,7 +296,7 @@ const ServicePage = () => {
           fillOpacity="0.2"
           d="M0,224L48,197.3C96,171,192,117,288,117.3C384,117,480,171,576,197.3C672,224,768,224,864,197.3C960,171,1056,117,1152,117.3C1248,117,1344,171,1392,197.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
         ></path>
-      </svg>
+      </svg> */}
     </div>
   );
 };

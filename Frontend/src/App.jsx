@@ -36,7 +36,7 @@ function App() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center relative overflow-hidden
+      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden
       bg-gradient-to-br from-blue-800 to-violet-900 text-white"
     >
       <Navbar />
