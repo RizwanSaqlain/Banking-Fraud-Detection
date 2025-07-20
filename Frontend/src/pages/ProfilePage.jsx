@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-import { User, Mail, Phone, MapPin, CreditCard, Shield, Calendar, Save, Edit, ArrowLeft, Home, CheckCircle } from "lucide-react";
+import { User, Mail, Phone, MapPin, CreditCard, Shield, Calendar, Save, Edit, ArrowLeft, Home, CheckCircle, Copy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "react-hot-toast";
@@ -20,13 +20,18 @@ const INIT_PROFILE = {
   profilePicture: "",
   email: "",
   phone: "",
+  countryCode: "+91",
   address: "",
-  accountNumber: "",
-  ifscCode: "",
+  // Removed: accountNumber: "",
+  // Removed: ifscCode: "",
   branch: "",
   accountType: "",
   currentBalance: "",
-  accountSince: ""
+  accountSince: "",
+  maritalStatus: "",
+  nationality: "",
+  occupation: "",
+  gender: "", // Added gender field
 };
 
 export default function ProfilePage() {
@@ -47,12 +52,29 @@ export default function ProfilePage() {
       }
       try {
         setLoading(true);
-        const res = await axios.get(`${API_BASE}?email=${user.email}`, { withCredentials: true });
-        setProfile(res.data);
+        const res = await axios.get(`${API_BASE}/me`, { withCredentials: true });
+        // Split phone into countryCode and phone number
+        const phone = res.data.phone || "";
+        let countryCode = "+91";
+        let phoneNumber = phone;
+        const match = phone.match(/^(\+\d{1,4})(.*)$/);
+        if (match) {
+          countryCode = match[1];
+          phoneNumber = match[2];
+        }
+        setProfile({
+          ...res.data,
+          countryCode,
+          phone: phoneNumber,
+        });
         setExists(true);
       } catch (error) {
         if (error.response?.status === 404) {
-          setProfile(prev => ({ ...prev, email: user.email }));
+          setProfile(prev => ({
+            ...prev,
+            email: user.email,
+            fullName: user.name || ""
+          }));
           setExists(false);
         } else {
           toast.error("Failed to load profile");
@@ -72,7 +94,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await axios.post(API_BASE, profile, { withCredentials: true });
+      const profileToSend = { ...profile, phone: profile.countryCode + profile.phone };
+      await axios.put(`${API_BASE}/me`, profileToSend, { withCredentials: true });
       setExists(true);
       setIsEditing(false);
       toast.success("Profile created");
@@ -87,7 +110,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await axios.put(API_BASE, profile, { withCredentials: true });
+      const profileToSend = { ...profile, phone: profile.countryCode + profile.phone };
+      await axios.put(`${API_BASE}/me`, profileToSend, { withCredentials: true });
       setIsEditing(false);
       toast.success("Profile updated");
     } catch (err) {
@@ -99,11 +123,18 @@ export default function ProfilePage() {
 
   const calculateCompletion = () => {
     let filled = 0;
-    const required = ["fullName", "email", "phone", "accountNumber", "ifscCode", "aadhaarNumber", "dob", "address"];
+    const required = ["fullName", "email", "phone", "accountNumber", "ifscCode", "aadhaarNumber", "dob", "address", "gender"];
     required.forEach(field => {
       if (profile[field] && profile[field].trim() !== "") filled++;
     });
     return Math.round((filled / required.length) * 100);
+  };
+
+  // Helper to get color based on completion
+  const getCompletionColor = (percent) => {
+    if (percent <= 40) return "bg-red-500";
+    if (percent <= 70) return "bg-yellow-400";
+    return "bg-green-500";
   };
 
   const handleLogout = () => {
@@ -112,9 +143,12 @@ export default function ProfilePage() {
     navigate("/login");
   };
 
+  const maskPan = (pan) => pan ? pan.replace(/.(?=.{4})/g, '*') : '';
+  const maskAadhaar = (aadhaar) => aadhaar ? aadhaar.replace(/.(?=.{4})/g, '*') : '';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
@@ -134,32 +168,9 @@ export default function ProfilePage() {
 
       {/* Header */}
 
-      <div className="relative z-10 sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Dashboard</span>
-              </Link>
-            </div>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 shadow-lg"
-            >
-              Logout
-            </motion.button>
-          </div>
-        </div>
-      </div>
 
 
-      <div className="relative z-10 max-w-4xl mx-auto py-8 px-6">
+      <div className="relative z-10 max-w-4xl mt-10 mx-auto py-8 px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -172,22 +183,27 @@ export default function ProfilePage() {
               <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-violet-600 rounded-full flex items-center justify-center">
                 <User className="w-10 h-10 text-white" />
               </div>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-white">
+              <div className="flex-1 ">
+                <h1 className="text-3xl font-bold text-black">
                   {profile.fullName || "Complete Your Profile"}
                 </h1>
-                <p className="text-blue-200">{profile.email || user?.email}</p>
+                <p className="text-black">{profile.email || user?.email}</p>
                 <p className="text-sm text-blue-300">
                   {exists ? "Profile loaded" : "New profile"}
                 </p>
                 <div className="mt-4">
-                  <div className="flex justify-between text-sm text-blue-200 mb-1">
+                  <div className="flex justify-between text-sm text-black mb-1">
                     <span>Profile Completion</span>
                     <span>{calculateCompletion()}%</span>
-
                   </div>
                   <div className="w-full bg-blue-900 border border-blue-700 rounded-full h-2 overflow-hidden">
-                    <div className="bg-blue-400 h-2" style={{ width: `${calculateCompletion()}%` }}></div>
+                    <motion.div
+                      className={`h-2 ${getCompletionColor(calculateCompletion())}`}
+                      style={{ width: `${calculateCompletion()}%` }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${calculateCompletion()}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
                   </div>
                 </div>
               </div>
@@ -208,17 +224,36 @@ export default function ProfilePage() {
           <form className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={exists ? handleUpdate : handleSave}>
             <FormField label="Full Name" name="fullName" icon={User} value={profile.fullName} onChange={handleChange} disabled={!isEditing} />
             <FormField type="email" label="Email" name="email" icon={Mail} value={profile.email} onChange={handleChange} disabled={true} />
-            <FormField label="Phone" name="phone" icon={Phone} value={profile.phone} onChange={handleChange} disabled={!isEditing} />
+            <FormField label="Phone" name="phone" icon={Phone} value={profile.phone} onChange={handleChange} disabled={!isEditing} countryCode={profile.countryCode} onCountryCodeChange={e => setProfile({ ...profile, countryCode: e.target.value })} />
             <FormField type="date" label="DOB" name="dob" icon={Calendar} value={profile.dob} onChange={handleChange} disabled={!isEditing} />
+            <FormField label="Gender" name="gender" icon={CheckCircle} value={profile.gender} onChange={handleChange} disabled={!isEditing} />
             <FormField label="Address" name="address" icon={MapPin} value={profile.address} onChange={handleChange} disabled={!isEditing} />
-            <FormField label="Account Number" name="accountNumber" icon={CreditCard} value={profile.accountNumber} onChange={handleChange} disabled={!isEditing} />
-            <FormField label="IFSC Code" name="ifscCode" icon={Shield} value={profile.ifscCode} onChange={handleChange} disabled={!isEditing} />
-            <FormField label="Aadhaar Number" name="aadhaarNumber" icon={Shield} value={profile.aadhaarNumber} onChange={handleChange} disabled={!isEditing} />
-
+            {/* Removed Account Number and IFSC Code fields */}
+            <FormField
+              label="PAN Number"
+              name="pan"
+              icon={CreditCard}
+              value={maskPan(profile.pan)}
+              onChange={handleChange}
+              disabled={!isEditing}
+              copyValue={profile.pan}
+            />
+            <FormField
+              label="Aadhaar Number"
+              name="aadhaarNumber"
+              icon={Shield}
+              value={maskAadhaar(profile.aadhaarNumber)}
+              onChange={handleChange}
+              disabled={!isEditing}
+              copyValue={profile.aadhaarNumber}
+            />
+            <FormField label="Marital Status" name="maritalStatus" icon={CheckCircle} value={profile.maritalStatus} onChange={handleChange} disabled={!isEditing} />
+            <FormField label="Nationality" name="nationality" icon={Home} value={profile.nationality} onChange={handleChange} disabled={!isEditing} />
+            <FormField label="Occupation / Employment Type" name="occupation" icon={Edit} value={profile.occupation} onChange={handleChange} disabled={!isEditing} />
             {/* Buttons */}
-            <div className="col-span-full mt-8 flex gap-4">
+            <div className="col-span-full mt-8 flex gap-4 ">
               {isEditing && (
-                <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 border border-blue-500 rounded hover:bg-blue-700">
+                <button type="button" onClick={() => setIsEditing(false)} className="px-6 cursor-pointer py-3 border border-blue-500 bg-blue-700  rounded hover:bg-blue-700">
 
                   Cancel
                 </button>
@@ -226,7 +261,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 rounded"
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-violet-500 cursor-pointer hover:from-blue-600 hover:to-violet-600 rounded"
 
               >
                 {saving ? "Saving..." : exists ? "Update Profile" : "Save Profile"}
@@ -239,13 +274,86 @@ export default function ProfilePage() {
   );
 }
 
-function FormField({ label, name, value, icon: Icon, onChange, disabled = false, type = "text" }) {
+function FormField({ label, name, value, icon: Icon, onChange, disabled = false, type = "text", copyValue, countryCode, onCountryCodeChange }) {
+  const handleCopy = () => {
+    if (copyValue) {
+      navigator.clipboard.writeText(copyValue);
+      toast.success(`${label} copied!`);
+    }
+  };
+  // Special case for gender dropdown
+  if (name === "gender") {
+    return (
+      <div className="relative">
+        <label className="flex items-center gap-2 text-sm text-black mb-1">
+          <Icon className="w-4 h-4" />
+          {label}
+        </label>
+        <select
+          name={name}
+          className="w-full px-4 py-2 rounded bg-blue-950 text-white border border-blue-700 placeholder-blue-300 disabled:opacity-50"
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+        >
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+          <option value="Prefer not to say">Prefer not to say</option>
+        </select>
+      </div>
+    );
+  }
+  // Special case for phone with country code
+  if (name === "phone") {
+    return (
+      <div className="relative">
+        <label className="flex items-center gap-2 text-sm text-black mb-1">
+          <Icon className="w-4 h-4" />
+          {label}
+        </label>
+        <div className="flex gap-2">
+          <select
+            className="px-2 py-2 rounded bg-blue-950 text-white border border-blue-700 disabled:opacity-50"
+            value={countryCode}
+            onChange={onCountryCodeChange}
+            disabled={disabled}
+            style={{ maxWidth: 100 }}
+          >
+            <option value="+91">+91 (IN)</option>
+            <option value="+1">+1 (US)</option>
+            <option value="+44">+44 (UK)</option>
+            <option value="+61">+61 (AU)</option>
+            <option value="+81">+81 (JP)</option>
+            <option value="+971">+971 (UAE)</option>
+            {/* Add more as needed */}
+          </select>
+          <input
+            type="tel"
+            name={name}
+            className="w-full px-4 py-2 rounded bg-blue-950 text-white border border-blue-700 placeholder-blue-300 disabled:opacity-50"
+            placeholder={`Enter ${label}`}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+    );
+  }
   return (
-    <div>
-      <label className="flex items-center gap-2 text-sm text-blue-200 mb-1">
+    <div className="relative">
+      <label className="flex items-center gap-2 text-sm text-black mb-1">
         <Icon className="w-4 h-4" />
         {label}
-
+        {copyValue && (
+          <Copy
+            className="w-4 h-4 ml-1 cursor-pointer text-blue-600 hover:text-blue-800"
+            onClick={handleCopy}
+            title={`Copy ${label}`}
+          />
+        )}
       </label>
       <input
         type={type}
