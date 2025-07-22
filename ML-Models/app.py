@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import joblib
 from flask_cors import CORS
+from sklearn.preprocessing import StandardScaler
 
 def extract_features(df):
     if len(df) < 2:
@@ -78,6 +79,7 @@ def analyze_mouse():
 def predict_fraud():
     data = request.get_json()
     print(data)
+
     input_features = pd.DataFrame([{
         'type': data['type'],
         'amount': data['amount'],
@@ -92,6 +94,49 @@ def predict_fraud():
 
     print(f"Prediction: {result}, Probability: {probability}")
     return jsonify({"prediction": result, "probability": float(probability)})
+
+
+anomolyModel = joblib.load('anomaly_detection_model.pkl')
+label_encoders = joblib.load('label_encoders.pkl')
+
+
+@app.route('/predict_anomaly_detection', methods=['POST'])
+def predict_anomaly_detection():
+    data = request.get_json()
+    df = pd.DataFrame([data]) if isinstance(data, dict) else pd.DataFrame(data)
+    
+    # Drop unnecessary columns if present
+    drop_cols = [col for col in ['user_id', 'timestamp', 'anomaly_type'] if col in df.columns]
+    df_inf = df.drop(columns=drop_cols)
+    
+    # Encode categorical variables
+    categorical_cols = ['ip_class', 'country_code', 'network_type']
+    for col in categorical_cols:
+        if col in df_inf.columns:
+            le = label_encoders[col]
+            df_inf[col] = le.transform(df_inf[col])
+    
+    # Normalize numerical features
+    scaler = StandardScaler()
+    X_inf = scaler.fit_transform(df_inf.drop(columns=['is_anomaly']) if 'is_anomaly' in df_inf.columns else df_inf)
+    
+    # Predict
+    y_pred = anomolyModel.predict(X_inf)
+    y_proba = anomolyModel.predict_proba(X_inf)[:, 1]
+    
+    result = []
+    for i in range(len(y_pred)):
+        res = {
+            'predicted_is_anomaly': int(y_pred[i]),
+            'anomaly_probability': float(y_proba[i])
+        }
+        if 'is_anomaly' in df.columns:
+            res['is_anomaly'] = int(df.iloc[i]['is_anomaly'])
+        result.append(res)
+    
+    return jsonify(result)
+
+
 
 if __name__ == '__main__':
     app.run(port=5001,debug=True)
