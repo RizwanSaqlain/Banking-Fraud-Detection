@@ -4,39 +4,39 @@ import axios from "axios";
 export default function MouseTracker() {
   const movementBuffer = useRef([]);
   const sessionStart = useRef(Date.now());
+  const lastCaptureTime = useRef(0);
+
+  // Change this value to adjust upload interval (in ms)
+  const UPLOAD_INTERVAL_MS = 10000; // 10 seconds
 
   useEffect(() => {
-    let lastX = 0;
-    let lastY = 0;
+    const sessionId = `${sessionStart.current.toString(36)}${Math.floor(Math.random() * 10)}`;
 
     const handleMouseMove = (e) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
+      const now = Date.now();
+      if (now - lastCaptureTime.current >= 200) {
+        const time_ms = now - sessionStart.current;
+        movementBuffer.current.push({ time_ms, x: e.clientX, y: e.clientY });
+        lastCaptureTime.current = now;
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Capture every 60 seconds
-    const trackingInterval = setInterval(() => {
-      const time_ms = Date.now() - sessionStart.current;
-      movementBuffer.current.push({ time_ms, x: lastX, y: lastY });
-    }, 60000);
-
-    // Send every 60 seconds to Flask backend
     const uploadInterval = setInterval(async () => {
       if (movementBuffer.current.length > 0) {
-        const dataToSend = [...movementBuffer.current];
+        const events = [...movementBuffer.current];
         movementBuffer.current = [];
 
+        // Send to analysis backend
         try {
           const res = await axios.post(
             "http://localhost:5001/analyze-mouse",
-            dataToSend,
+            events,
             {
               headers: { "Content-Type": "application/json" },
             }
           );
-
           const { anomaly_score, is_anomaly } = res.data;
           console.log("Anomaly Score:", anomaly_score);
           if (is_anomaly) {
@@ -45,12 +45,22 @@ export default function MouseTracker() {
         } catch (err) {
           console.error("Error analyzing mouse movement:", err);
         }
+
+        // Send to saving backend
+        try {
+          await axios.post(
+            "http://localhost:5000/api/cursor-events",
+            { sessionId, events },
+            { headers: { "Content-Type": "application/json" } }
+          );
+        } catch (err) {
+          console.error("Error saving cursor events:", err);
+        }
       }
-    }, 60000);
+    }, UPLOAD_INTERVAL_MS);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      clearInterval(trackingInterval);
       clearInterval(uploadInterval);
     };
   }, []);
