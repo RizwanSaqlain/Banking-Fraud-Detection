@@ -26,7 +26,7 @@ def extract_features(df):
     return pd.DataFrame([features])
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
 # Load Isolation Forest model
 model = joblib.load('isolation_forest.pkl')

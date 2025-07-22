@@ -38,23 +38,15 @@ const SignUpPage = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-blue-300/10 to-purple-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.5,
-        }}
-        className="max-w-md w-full bg-gray-800 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
-      >
-        <div className="p-8">
-          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text mb-6">
-            Create Account
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="p-8 w-full max-w-md"
+        >
+          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text mb-6">
+            Create Your Account
           </h2>
           <form onSubmit={handleSignUp}>
             <Input
@@ -62,55 +54,50 @@ const SignUpPage = () => {
               type="text"
               placeholder="Full Name"
               value={name}
+              onChange={(e) => setName(e.target.value)}
               onKeyDown={handleKeyDown}
-              onChange={(e) => {
-                setName(e.target.value);
-              }}
+              required
             />
             <Input
               icon={Mail}
               type="email"
               placeholder="Email Address"
               value={email}
+              onChange={(e) => setEmail(e.target.value)}
               onKeyDown={handleKeyDown}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
+              required
             />
             <Input
               icon={Lock}
               type="password"
               placeholder="Password"
               value={password}
+              onChange={(e) => setPassword(e.target.value)}
               onKeyDown={handleKeyDown}
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
+              required
             />
-            {error && <p className="text-red-500 text-sm pb-2">{error}</p>}
             <PasswordStrengthMeter password={password} />
-
+            <div className="my-4 flex justify-center">
+              <ReCAPTCHA
+                sitekey={"6Lem2HArAAAAAGpEIecDPyOEul3BJuwdMal32AgL"}
+                onChange={handleCaptcha}
+              />
+            </div>
+            {error && (
+              <p className="text-red-500 font-semibold mb-2">{error}</p>
+            )}
             <motion.button
-              className="w-full py-3 mt-5 bg-gradient-to-r from-blue-500 to-violet-500 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-violet-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 cursor-pointer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={isLoading}
             >
-              {isLoading ? (
-                <Loader className="animate-spin mx-auto" size={24} />
-              ) : (
-                "Sign Up"
-              )}
+              {isLoading ? "Signing up..." : "Sign Up"}
             </motion.button>
           </form>
-        </div>
-        <ReCAPTCHA
-          className="mx-auto mb-4 w-fit"
-          sitekey="6Lem2HArAAAAAGpEIecDPyOEul3BJuwdMal32AgL"
-          onChange={handleCaptcha}
-        />
-        <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
+        </motion.div>
+        <div className="px-8 py-4 bg-gray-200 bg-opacity-50 flex justify-center w-full">
           <p className="text-sm text-gray-400">
             Already have an account?{" "}
             <Link
@@ -121,7 +108,7 @@ const SignUpPage = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

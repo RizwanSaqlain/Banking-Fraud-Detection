@@ -20,10 +20,12 @@ import {
   TrendingUp,
   DollarSign
 } from "lucide-react";
+import React, { useState } from "react";
 
 const DashboardPage = () => {
   const { user, deleteAccount } = useAuthStore();
   const { context } = useContextData();
+  const [riskScore, setRiskScore] = useState(user.riskScore);
 
   const handleDeleteAccount = () => {
     if (
@@ -296,7 +298,7 @@ const DashboardPage = () => {
                   <Shield className="w-5 h-5 text-green-600" />
                   Security Status
                 </h3>
-                <ContextStatus context={context} userProfile={user} />
+                <ContextStatus context={context} userProfile={{...user, riskScore}} />
               </motion.div>
 
             </div>

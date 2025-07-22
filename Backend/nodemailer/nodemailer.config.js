@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Auth V1" <${USER}>`, // sender address
+      from: `"Pattern Sentinel" <${USER}>`, // sender address
       to,
       subject,
       html,

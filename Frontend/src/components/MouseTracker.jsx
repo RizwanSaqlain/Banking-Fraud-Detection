@@ -1,38 +1,36 @@
 import { useEffect, useRef } from "react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function MouseTracker() {
   const movementBuffer = useRef([]);
   const sessionStart = useRef(Date.now());
 
   useEffect(() => {
-    let lastX = 0;
-    let lastY = 0;
+    // Generate a consistent sessionId for this session
+    // const sessionId = ${sessionStart.current.toString(36)}${Math.floor(Math.random() * 10)};
 
     const handleMouseMove = (e) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
+      const time_ms = Date.now() - sessionStart.current;
+      movementBuffer.current.push({ time_ms, x: e.clientX, y: e.clientY });
     };
 
     window.addEventListener("mousemove", handleMouseMove);
 
-    // Capture every 60 seconds
-    const trackingInterval = setInterval(() => {
-      const time_ms = Date.now() - sessionStart.current;
-      movementBuffer.current.push({ time_ms, x: lastX, y: lastY });
-    }, 60000);
-
-    // Send every 60 seconds to Flask backend
+    // Send every 30 seconds to Flask backend
     const uploadInterval = setInterval(async () => {
       if (movementBuffer.current.length > 0) {
-        const dataToSend = [...movementBuffer.current];
+        const events = [...movementBuffer.current];
         movementBuffer.current = [];
-
+        // console.log("Sending events to backend:", events);
         try {
           const res = await axios.post(
             "http://localhost:5001/analyze-mouse",
-            dataToSend,
             {
+              events,
+            },
+            {
+              withCredentials: true,
               headers: { "Content-Type": "application/json" },
             }
           );
@@ -41,16 +39,16 @@ export default function MouseTracker() {
           console.log("Anomaly Score:", anomaly_score);
           if (is_anomaly) {
             console.warn("⚠ Suspicious cursor behavior detected!");
+            toast.warning("Suspicious cursor behavior detected!");
           }
         } catch (err) {
           console.error("Error analyzing mouse movement:", err);
         }
       }
-    }, 60000);
+    }, 10000); // 30 seconds
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      clearInterval(trackingInterval);
       clearInterval(uploadInterval);
     };
   }, []);

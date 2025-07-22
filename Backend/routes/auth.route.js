@@ -12,6 +12,7 @@ import {
   verifyTwoFactorAuth,
   findUserByAccountNumber,
   getMyAccountDetails,
+  resetRiskScore,
 } from "../controller/auth.controller.js";
 import verifyToken from "../middleware/verifyToken.js";
 
@@ -28,6 +29,8 @@ router.post("/verify-2fa", verifyTwoFactorAuth);
 router.post("/resend-verification", resendVerificationCode);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
+router.post("/reset-riskscore", verifyToken, resetRiskScore);
 
 router.delete("/delete-account", verifyToken, deleteAccount);
 
