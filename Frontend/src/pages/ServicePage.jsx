@@ -13,18 +13,29 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
-import { Navbar } from "../components";
+import { useAuthStore } from "../store/authStore";
+import { toast } from "react-hot-toast";
 
 const ServicePage = () => {
+  const { user } = useAuthStore();
   const [selectedService, setSelectedService] = useState(null);
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
+    fullName: user?.name || "",
+    email: user?.email || "",
     phone: "",
     dateOfBirth: "",
     address: "",
     occupation: "",
   });
+
+  // Autofill name/email if user changes (e.g., after login)
+  React.useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      fullName: user?.name || "",
+      email: user?.email || "",
+    }));
+  }, [user]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -45,7 +56,7 @@ const ServicePage = () => {
         );
         const data = await response.json();
         if (data.success) {
-          alert("Service request submitted successfully!");
+          toast.success("Service request submitted successfully!");
           // Reset form data
           setFormData({
             fullName: "",
@@ -58,10 +69,10 @@ const ServicePage = () => {
           // Hide the form
           setSelectedService(null);
         } else {
-          alert(data.error || "Submission failed");
+          toast.error(data.error || "Submission failed");
         }
       } catch (err) {
-        alert("Server error");
+        toast.error("Server error");
       }
     },
     [formData, selectedService]

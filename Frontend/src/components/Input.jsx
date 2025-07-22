@@ -21,7 +21,7 @@ const Input = ({ icon: Icon, type = "text", label, ...props }) => {
       <input
         {...props}
         type={isPassword && showPassword ? "text" : type}
-        className="w-full pl-10 pr-10 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:border-violet-500 focus:ring-violet-500 text-white placeholder-gray-400 transition duration-200"
+        className="w-full pl-10 pr-10 py-2 bg-gray-100 bg-opacity-50 rounded-lg border border-gray-700 focus:border-violet-500 focus:ring-violet-500 text-gray-800 placeholder-gray-400 transition duration-200"
       />
 
       {/* Right Eye Icon (Only for Password Fields) */}

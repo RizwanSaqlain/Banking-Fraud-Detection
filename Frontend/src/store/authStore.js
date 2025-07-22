@@ -247,4 +247,28 @@ export const useAuthStore = create((set) => ({
       throw error;
     }
   },
+
+  // Reset riskScore to 0 for the current user
+  resetRiskScore: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/reset-riskscore`);
+      if (response.data.success) {
+        set((state) => ({
+          user: state.user ? { ...state.user, riskScore: 0 } : state.user,
+          isLoading: false,
+          error: null,
+        }));
+      } else {
+        set({ isLoading: false, error: response.data.message || "Failed to reset risk score" });
+      }
+      return response.data;
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to reset risk score",
+      });
+      throw error;
+    }
+  },
 }));

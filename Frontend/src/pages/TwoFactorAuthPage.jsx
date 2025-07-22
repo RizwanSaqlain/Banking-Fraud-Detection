@@ -103,15 +103,15 @@ const TwoFactorAuthPage = () => {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md"
+        className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20 w-full max-w-md"
       >
-        <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text mb-6">
+        <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text mb-6">
           Two-Factor Authentication
         </h2>
-        <p className="text-center text-gray-400 mb-2">
+        <p className="text-center text-gray-600 mb-2">
           Enter the verification code sent to your email.
         </p>
-        <p className="text-center mb-6 text-violet-500">{twoFAEmail}</p>
+        <p className="text-center mb-6 text-purple-600 font-semibold">{twoFAEmail}</p>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex justify-between">
             {code.map((digit, index) => (
@@ -127,19 +127,19 @@ const TwoFactorAuthPage = () => {
                 onKeyDown={(e) => {
                   handleKeyDown(index, e);
                 }}
-                className="w-12 h-12 text-center text-2xl bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-12 h-12 text-center text-2xl bg-gray-100 text-gray-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-200"
               />
             ))}
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500">
               {canResend
                 ? "Didn't receive the code?"
                 : `Resend available in ${timer}s`}
             </span>
             <button
               type="button"
-              className={`ml-2 text-blue-400 font-semibold hover:underline disabled:text-gray-500`}
+              className={`ml-2 text-blue-600 font-semibold hover:underline disabled:text-gray-400`}
               onClick={handleResend}
               disabled={!canResend}
             >
@@ -150,7 +150,7 @@ const TwoFactorAuthPage = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full py-3 font-semibold bg-gradient-to-r from-blue-500 to-violet-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+            className="w-full py-3 font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition duration-200"
             type="submit"
             disabled={isLoading || code.some((digit) => !digit)}
           >

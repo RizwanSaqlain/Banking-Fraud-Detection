@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function MouseTracker() {
   const movementBuffer = useRef([]);
@@ -26,6 +27,7 @@ export default function MouseTracker() {
     const uploadInterval = setInterval(async () => {
       if (movementBuffer.current.length > 0) {
         const events = [...movementBuffer.current];
+        const events = [...movementBuffer.current];
         movementBuffer.current = [];
 
         // Send to analysis backend
@@ -34,6 +36,7 @@ export default function MouseTracker() {
             "http://localhost:5001/analyze-mouse",
             events,
             {
+              withCredentials: true,
               headers: { "Content-Type": "application/json" },
             }
           );
@@ -41,6 +44,7 @@ export default function MouseTracker() {
           console.log("Anomaly Score:", anomaly_score);
           if (is_anomaly) {
             console.warn("⚠ Suspicious cursor behavior detected!");
+            toast.warning("Suspicious cursor behavior detected!");
           }
         } catch (err) {
           console.error("Error analyzing mouse movement:", err);

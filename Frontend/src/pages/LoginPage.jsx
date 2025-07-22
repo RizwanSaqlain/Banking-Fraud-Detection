@@ -54,10 +54,10 @@ const LoginPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
+        className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
       >
         <div className="p-8">
-          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-400 to-violet-500 text-transparent bg-clip-text mb-6">
+          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text mb-6">
             Welcome Back
           </h2>
           <form onSubmit={handleLogin}>
@@ -83,22 +83,18 @@ const LoginPage = () => {
             <div className="flex items-center mb-6">
               <Link
                 to={"/forget-password"}
-                className="text-sm text-violet-500 hover:underline"
+                className="text-sm text-purple-600 hover:underline"
               >
                 Forget Password?
               </Link>
             </div>
             <motion.button
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-violet-500 text-white font-semibold rounded-lg shadow-lg hover:from-blue-600 hover:to-violet-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 cursor-pointer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
             >
-              {isLoading ? (
-                <Loader className="animate-spin mx-auto" />
-              ) : (
-                "Login"
-              )}
+              {isLoading ? "Logging in..." : "Login"}
             </motion.button>
           </form>
         </div>
@@ -107,7 +103,7 @@ const LoginPage = () => {
           sitekey="6Lem2HArAAAAAGpEIecDPyOEul3BJuwdMal32AgL"
           onChange={handleCaptcha}
         />
-        <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
+        <div className="px-8 py-4 bg-gray-200 bg-opacity-50 flex justify-center">
           <p className="text-sm text-gray-400">
             Don't have an account?{" "}
             <Link

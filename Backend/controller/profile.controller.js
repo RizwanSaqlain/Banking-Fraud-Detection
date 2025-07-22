@@ -12,7 +12,7 @@ export const getMyProfile = async (req, res) => {
     }
 
     const profileObj = profile.toObject();
-    profileObj.name = user.name;
+    profileObj.fullName = user.fullName || user.name;
     profileObj.email = user.email;
     res.json(profileObj);
   } catch (err) {
@@ -26,14 +26,14 @@ export const updateMyProfile = async (req, res) => {
     if (!profile) {
       profile = await Profile.create({ user: req.userId });
     }
-    // Only update fields that are not name/email
-    const { aadhaar, ifsc, address, fatherName, dob, branchName } = req.body;
-    if (aadhaar !== undefined) profile.aadhaar = aadhaar;
-    if (ifsc !== undefined) profile.ifsc = ifsc;
-    if (address !== undefined) profile.address = address;
-    if (fatherName !== undefined) profile.fatherName = fatherName;
-    if (dob !== undefined) profile.dob = dob;
-    if (branchName !== undefined) profile.branchName = branchName;
+    // Update all fields from the request body
+    const fields = [
+      'fullName', 'fatherName', 'dob', 'pan', 'aadhaarNumber', 'profilePicture', 'email', 'phone', 'address',
+      'branch', 'accountType', 'currentBalance', 'accountSince', 'maritalStatus', 'nationality', 'occupation', 'gender'
+    ];
+    fields.forEach(field => {
+      if (req.body[field] !== undefined) profile[field] = req.body[field];
+    });
     await profile.save();
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {

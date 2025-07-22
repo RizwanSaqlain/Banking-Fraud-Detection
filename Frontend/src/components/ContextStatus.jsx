@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  Shield, 
-  Globe, 
-  Monitor, 
-  Clock, 
-  MapPin, 
-  Type, 
-  MousePointer, 
+import {
+  Shield,
+  Globe,
+  Monitor,
+  Clock,
+  MapPin,
+  Type,
+  MousePointer,
   Layers,
   Activity,
   Info,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import axios from "axios";
+import { useAuthStore } from "../store/authStore";
 
 const getStatusConfig = (ok, label) => {
   const baseConfig = {
@@ -22,24 +25,24 @@ const getStatusConfig = (ok, label) => {
     color: ok ? "text-green-600" : "text-red-600",
     bgColor: ok ? "bg-green-50" : "bg-red-50",
     borderColor: ok ? "border-green-200" : "border-red-200",
-    status: ok ? "Secure" : "Risk Detected"
+    status: ok ? "Secure" : "Risk Detected",
   };
 
   // Custom icons for specific checks
   const iconMap = {
-    "IP": Globe,
-    "Device": Monitor,
-    "Hour": Clock,
-    "Location": MapPin,
-    "Typing": Type,
-    "Cursor": MousePointer,
-    "Tabs": Layers,
-    "FPS": Activity
+    IP: Globe,
+    Device: Monitor,
+    Hour: Clock,
+    Location: MapPin,
+    Typing: Type,
+    Cursor: MousePointer,
+    Tabs: Layers,
+    FPS: Activity,
   };
 
   return {
     ...baseConfig,
-    icon: iconMap[label] || baseConfig.icon
+    icon: iconMap[label] || baseConfig.icon,
   };
 };
 
@@ -48,47 +51,55 @@ const getDetailedInfo = (label, context, userProfile) => {
     case "IP":
       return {
         title: "IP Address Verification",
-        description: context.ip ? `Current IP: ${context.ip}` : "IP not detected",
-        details: userProfile.trustedIPs?.length 
+        description: context.ip
+          ? `Current IP: ${context.ip}`
+          : "IP not detected",
+        details: userProfile.trustedIPs?.length
           ? `Trusted IPs: ${userProfile.trustedIPs.join(", ")}`
-          : "No trusted IPs configured"
+          : "No trusted IPs configured",
       };
     case "Device":
       return {
         title: "Device Recognition",
-        description: context.device ? `Current device: ${context.device}` : "Device not detected",
+        description: context.device
+          ? `Current device: ${context.device}`
+          : "Device not detected",
         details: userProfile.trustedDevices?.length
           ? `Trusted devices: ${userProfile.trustedDevices.join(", ")}`
-          : "No trusted devices configured"
+          : "No trusted devices configured",
       };
     case "Hour":
       const loginHour = new Date(context.loginTime).getHours();
       return {
         title: "Login Time Analysis",
         description: `Login time: ${loginHour}:00`,
-        details: loginHour >= 6 && loginHour <= 22 
-          ? "Within normal business hours (6 AM - 10 PM)"
-          : "Outside normal business hours"
+        details:
+          loginHour >= 6 && loginHour <= 22
+            ? "Within normal business hours (6 AM - 10 PM)"
+            : "Outside normal business hours",
       };
     case "Location":
       return {
         title: "Geographic Location",
-        description: context.location 
-          ? `Lat: ${context.location.latitude.toFixed(4)}, Lon: ${context.location.longitude.toFixed(4)}`
+        description: context.location
+          ? `Lat: ${context.location.latitude.toFixed(
+              4
+            )}, Lon: ${context.location.longitude.toFixed(4)}`
           : "Location not detected",
         details: userProfile.locations?.length
           ? `${userProfile.locations.length} trusted locations configured`
-          : "No trusted locations configured"
+          : "No trusted locations configured",
       };
     case "Typing":
       return {
         title: "Typing Behavior Analysis",
-        description: context.typingSpeed 
+        description: context.typingSpeed
           ? `Speed: ${context.typingSpeed} ms/char`
           : "Typing speed not measured",
-        details: context.typingSpeed >= 300
-          ? "Typing speed within normal human range"
-          : "Typing speed may indicate automated behavior"
+        details:
+          context.typingSpeed >= 300
+            ? "Typing speed within normal human range"
+            : "Typing speed may indicate automated behavior",
       };
     case "Cursor":
       return {
@@ -96,42 +107,49 @@ const getDetailedInfo = (label, context, userProfile) => {
         description: context.cursorMovements?.length
           ? `${context.cursorMovements.length} movements recorded`
           : "No cursor movements recorded",
-        details: context.cursorMovements?.length >= 10
-          ? "Sufficient cursor activity detected"
-          : "Insufficient cursor activity for analysis"
+        details:
+          context.cursorMovements?.length >= 10
+            ? "Sufficient cursor activity detected"
+            : "Insufficient cursor activity for analysis",
       };
     case "Tabs":
       return {
         title: "Tab Switching Behavior",
-        description: context.tabSwitches !== undefined
-          ? `${context.tabSwitches} tab switches detected`
-          : "Tab switching not monitored",
-        details: context.tabSwitches <= 1
-          ? "Normal tab switching behavior"
-          : "Excessive tab switching may indicate suspicious activity"
+        description:
+          context.tabSwitches !== undefined
+            ? `${context.tabSwitches} tab switches detected`
+            : "Tab switching not monitored",
+        details:
+          context.tabSwitches <= 1
+            ? "Normal tab switching behavior"
+            : "Excessive tab switching may indicate suspicious activity",
       };
     case "FPS":
       return {
         title: "Screen Performance",
-        description: context.screenFPSDrops !== undefined
-          ? `${context.screenFPSDrops} FPS drops detected`
-          : "Screen performance not monitored",
-        details: context.screenFPSDrops <= 5
-          ? "Normal screen performance"
-          : "Performance issues may indicate virtual environment"
+        description:
+          context.screenFPSDrops !== undefined
+            ? `${context.screenFPSDrops} FPS drops detected`
+            : "Screen performance not monitored",
+        details:
+          context.screenFPSDrops <= 5
+            ? "Normal screen performance"
+            : "Performance issues may indicate virtual environment",
       };
     default:
       return {
         title: label,
         description: "No detailed information available",
-        details: ""
+        details: "",
       };
   }
 };
 
 const ContextStatus = ({ context, userProfile }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
-
+  const [resetLoading, setResetLoading] = useState(false);
+  const [riskScore, setRiskScore] = useState(userProfile.riskScore);
+  const { resetRiskScore } = useAuthStore();
   if (!context || !userProfile) return null;
 
   // Enhanced checks with more detailed logic
@@ -156,10 +174,15 @@ const ContextStatus = ({ context, userProfile }) => {
     );
   }
 
-  const typingSpeedOk = typeof context.typingSpeed === "number" && context.typingSpeed >= 300;
-  const cursorOk = Array.isArray(context.cursorMovements) && context.cursorMovements.length >= 10;
-  const tabSwitchOk = typeof context.tabSwitches === "number" && context.tabSwitches <= 1;
-  const fpsOk = typeof context.screenFPSDrops === "number" && context.screenFPSDrops <= 5;
+  const typingSpeedOk =
+    typeof context.typingSpeed === "number" && context.typingSpeed >= 300;
+  const cursorOk =
+    Array.isArray(context.cursorMovements) &&
+    context.cursorMovements.length >= 10;
+  const tabSwitchOk =
+    typeof context.tabSwitches === "number" && context.tabSwitches <= 1;
+  const fpsOk =
+    typeof context.screenFPSDrops === "number" && context.screenFPSDrops <= 5;
 
   const items = [
     { label: "IP", ok: ipOk },
@@ -172,7 +195,9 @@ const ContextStatus = ({ context, userProfile }) => {
     { label: "FPS", ok: fpsOk },
   ];
 
-  const overallSecurityScore = Math.round((items.filter(item => item.ok).length / items.length) * 100);
+  const overallSecurityScore = Math.round(
+    (items.filter((item) => item.ok).length / items.length) * 100
+  );
 
   return (
     <motion.div
@@ -188,14 +213,20 @@ const ContextStatus = ({ context, userProfile }) => {
             <Shield className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-800">Security Context Analysis</h3>
-            <p className="text-sm text-gray-600">Real-time behavioral biometrics monitoring</p>
+            <h3 className="text-lg font-bold text-gray-800">
+              Security Context Analysis
+            </h3>
+            <p className="text-sm text-gray-600">
+              Real-time behavioral biometrics monitoring
+            </p>
           </div>
         </div>
-        
+
         {/* Overall Security Score */}
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-800">{overallSecurityScore}%</div>
+          <div className="text-2xl font-bold text-gray-800">
+            {overallSecurityScore}%
+          </div>
           <div className="text-xs text-gray-500">Security Score</div>
           <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
             <motion.div
@@ -203,11 +234,40 @@ const ContextStatus = ({ context, userProfile }) => {
               animate={{ width: `${overallSecurityScore}%` }}
               transition={{ duration: 1, delay: 0.5 }}
               className={`h-2 rounded-full ${
-                overallSecurityScore >= 80 ? 'bg-green-500' :
-                overallSecurityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                overallSecurityScore >= 80
+                  ? "bg-green-500"
+                  : overallSecurityScore >= 60
+                  ? "bg-yellow-500"
+                  : "bg-red-500"
               }`}
             />
           </div>
+          {/* Reset Risk Score Button */}
+          {riskScore > 0 && (
+            <button
+              className={`mt-3 px-4 py-2 rounded-lg bg-red-500 text-white font-semibold shadow hover:bg-red-600 transition disabled:opacity-60 disabled:cursor-not-allowed`}
+              onClick={async () => {
+                setResetLoading(true);
+                try {
+                  const res = await resetRiskScore();
+                  if (res.success) {
+                    setRiskScore(0);
+                    toast.success("Risk score reset to 0.");
+                  } else {
+                    toast.error(res.message || "Failed to reset risk score.");
+                  }
+                  setResetLoading(false);
+                } catch (error) {
+                  toast.error("Failed to reset risk score.");
+                  console.error("Error resetting risk score:", error);
+                  setResetLoading(false);
+                }
+              }}
+              disabled={resetLoading}
+            >
+              {resetLoading ? "Resetting..." : "Reset Risk Score"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -216,7 +276,11 @@ const ContextStatus = ({ context, userProfile }) => {
         {items.map((item, index) => {
           const config = getStatusConfig(item.ok, item.label);
           const Icon = config.icon;
-          const detailedInfo = getDetailedInfo(item.label, context, userProfile);
+          const detailedInfo = getDetailedInfo(
+            item.label,
+            context,
+            userProfile
+          );
 
           return (
             <motion.div
@@ -231,9 +295,7 @@ const ContextStatus = ({ context, userProfile }) => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                  config.bgColor
-                } ${config.borderColor} hover:border-opacity-60 hover:shadow-md`}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer ${config.bgColor} ${config.borderColor} hover:border-opacity-60 hover:shadow-md`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <Icon className={`w-5 h-5 ${config.color}`} />
@@ -241,9 +303,11 @@ const ContextStatus = ({ context, userProfile }) => {
                     {config.status}
                   </span>
                 </div>
-                
+
                 <div className="text-center">
-                  <div className="text-lg font-bold text-gray-800 mb-1">{item.label}</div>
+                  <div className="text-lg font-bold text-gray-800 mb-1">
+                    {item.label}
+                  </div>
                   <div className={`text-2xl ${config.color}`}>
                     {item.ok ? "✓" : "✗"}
                   </div>
@@ -259,11 +323,17 @@ const ContextStatus = ({ context, userProfile }) => {
                     <div className="bg-gray-900 border border-gray-600 rounded-lg p-4 shadow-xl max-w-xs">
                       <div className="flex items-center gap-2 mb-2">
                         <Info className="w-4 h-4 text-blue-400" />
-                        <span className="font-semibold text-white">{detailedInfo.title}</span>
+                        <span className="font-semibold text-white">
+                          {detailedInfo.title}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">{detailedInfo.description}</p>
+                      <p className="text-sm text-gray-300 mb-2">
+                        {detailedInfo.description}
+                      </p>
                       {detailedInfo.details && (
-                        <p className="text-xs text-gray-400">{detailedInfo.details}</p>
+                        <p className="text-xs text-gray-400">
+                          {detailedInfo.details}
+                        </p>
                       )}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
@@ -279,52 +349,74 @@ const ContextStatus = ({ context, userProfile }) => {
       <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle className="w-5 h-5 text-yellow-600" />
-          <span className="font-semibold text-gray-800">Security Recommendations</span>
+          <span className="font-semibold text-gray-800">
+            Security Recommendations
+          </span>
         </div>
-        
+
         <div className="space-y-2">
           {!ipOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">IP Address:</span> Current IP is not in your trusted list
+              • <span className="text-yellow-600 font-medium">IP Address:</span>{" "}
+              Current IP is not in your trusted list
             </p>
           )}
           {!deviceOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Device:</span> This device is not recognized
+              • <span className="text-yellow-600 font-medium">Device:</span>{" "}
+              This device is not recognized
             </p>
           )}
           {!hourOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Login Time:</span> Login outside normal hours detected
+              • <span className="text-yellow-600 font-medium">Login Time:</span>{" "}
+              Login outside normal hours detected
             </p>
           )}
           {!locationOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Location:</span> Login from unfamiliar location
+              • <span className="text-yellow-600 font-medium">Location:</span>{" "}
+              Login from unfamiliar location
             </p>
           )}
           {!typingSpeedOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Typing Behavior:</span> Unusual typing patterns detected
+              •{" "}
+              <span className="text-yellow-600 font-medium">
+                Typing Behavior:
+              </span>{" "}
+              Unusual typing patterns detected
             </p>
           )}
           {!cursorOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Mouse Movement:</span> Insufficient cursor activity
+              •{" "}
+              <span className="text-yellow-600 font-medium">
+                Mouse Movement:
+              </span>{" "}
+              Insufficient cursor activity
             </p>
           )}
           {!tabSwitchOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Tab Switching:</span> Excessive tab switching detected
+              •{" "}
+              <span className="text-yellow-600 font-medium">
+                Tab Switching:
+              </span>{" "}
+              Excessive tab switching detected
             </p>
           )}
           {!fpsOk && (
             <p className="text-sm text-gray-700">
-              • <span className="text-yellow-600 font-medium">Screen Performance:</span> Performance issues detected
+              •{" "}
+              <span className="text-yellow-600 font-medium">
+                Screen Performance:
+              </span>{" "}
+              Performance issues detected
             </p>
           )}
-          
-          {items.every(item => item.ok) && (
+
+          {items.every((item) => item.ok) && (
             <p className="text-sm text-green-600 font-medium">
               ✓ All security checks passed. Your session appears secure.
             </p>

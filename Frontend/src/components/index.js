@@ -7,6 +7,7 @@ import RedirectAuthenticatedUser from "./RedirectAuthenticatedUser";
 import MouseTracker from "./MouseTracker";
 import ContextLogTable from "./ContextLogTable";
 import Navbar from "./Navbar";
+import ServiceRequestList from "./ServiceRequestList";
 
 export {
   FloatingShape,
@@ -18,4 +19,5 @@ export {
   MouseTracker,
   ContextLogTable,
   Navbar,
+  ServiceRequestList,
 };

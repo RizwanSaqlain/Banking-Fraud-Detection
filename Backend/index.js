@@ -8,6 +8,7 @@ import profileRoutes from "./routes/profile.route.js";
 import serviceRequestRoutes from "./routes/serviceRequest.route.js";
 import cursorEventRoutes from "./routes/cursorEvent.route.js";
 import connectDB from "./db/connectDB.js";
+import logApiCalls from "./middleware/logApiCalls.js";
 import CursorEvent from './models/cursorTrack.model.js';
 
 dotenv.config();
@@ -24,6 +25,8 @@ app.use(
     credentials: true,
   })
 );
+// Log all API calls
+app.use(logApiCalls);
 
 // Connect to DB
 connectDB();

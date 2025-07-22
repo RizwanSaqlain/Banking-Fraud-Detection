@@ -5,7 +5,7 @@ import { formatDate } from "../utils/date";
 import { toast } from "react-hot-toast";
 import ContextStatus from "../components/ContextStatus";
 import useContextData from "../hooks/useContextData";
-import { ContextLogTable, Navbar } from "../components";
+import { ContextLogTable, ServiceRequestList } from "../components";
 import { 
   User, 
   Mail, 
@@ -20,10 +20,12 @@ import {
   TrendingUp,
   DollarSign
 } from "lucide-react";
+import React, { useState } from "react";
 
 const DashboardPage = () => {
   const { user, deleteAccount } = useAuthStore();
   const { context } = useContextData();
+  const [riskScore, setRiskScore] = useState(user.riskScore);
 
   const handleDeleteAccount = () => {
     if (
@@ -192,6 +194,9 @@ const DashboardPage = () => {
                 </div>
               </motion.div>
 
+              {/* Service Request List */}
+              <ServiceRequestList />
+
               {/* Danger Zone */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -296,7 +301,7 @@ const DashboardPage = () => {
                   <Shield className="w-5 h-5 text-green-600" />
                   Security Status
                 </h3>
-                <ContextStatus context={context} userProfile={user} />
+                <ContextStatus context={context} userProfile={{...user, riskScore}} />
               </motion.div>
 
             </div>

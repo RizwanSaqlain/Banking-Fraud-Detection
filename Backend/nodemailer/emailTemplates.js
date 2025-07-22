@@ -19,7 +19,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = `
     <p>Enter this code on the verification page to complete your registration.</p>
     <p>This code will expire in 15 minutes for security reasons.</p>
     <p>If you didn't create an account with us, please ignore this email.</p>
-    <p>Best regards,<br>Auth V1 Team</p>
+    <p>Best regards,<br>Pattern Sentinel Team</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -56,7 +56,7 @@ export const PASSWORD_RESET_SUCCESS_TEMPLATE = `
       <li>Avoid using the same password across multiple sites</li>
     </ul>
     <p>Thank you for helping us keep your account secure.</p>
-    <p>Best regards,<br>Your App Team</p>
+    <p>Best regards,<br>The Pattern Sentinel Team</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -85,7 +85,7 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
       <a href="{resetURL}" style="background-color: #2b7fff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
     </div>
     <p>This link will expire in 30 minutes for security reasons.</p>
-    <p>Best regards,<br>Auth v1 Team</p>
+      <p>Best regards,<br>Pattern Sentinel Team</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -126,7 +126,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
     <p>If you have any questions or need help, feel free to reach out to our support team at any time.</p>
 
     <p>We’re excited to see what you’ll achieve!</p>
-    <p>Warm regards,<br>The Auth App Team</p>
+    <p>Warm regards,<br>The Pattern Sentinel Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -162,7 +162,7 @@ export const ACCOUNT_DELETION_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 
     <p>We’d like to thank you for your time with us. If there’s anything we could’ve done better, feel free to share your feedback.</p>
 
-    <p>Wishing you the best ahead,<br>The Auth App Team</p>
+    <p>Wishing you the best ahead,<br>The Pattern Sentinel Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -205,7 +205,7 @@ export const NEWDEVICE_LOGIN_ALERT_TEMPLATE = `<!DOCTYPE html>
     <p>If this was <strong>you</strong>, no further action is needed.</p>
     <p>If this wasn't you, please <a href="{secureLink}" style="color: #ff4b2b;">secure your account immediately</a> and change your password.</p>
 
-    <p>Stay safe,<br>The Auth App Security Team</p>
+    <p>Stay safe,<br>The Pattern Sentinel Security Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -271,7 +271,7 @@ export const SUSPICIOUS_ACTIVITY_WARNING_TEMPLATE = `<!DOCTYPE html>
     </ul>
 
     <p>Thank you for helping us keep your account secure!</p>
-    <p>Best regards,<br>The Auth App Security Team</p>
+    <p>Best regards,<br>The Pattern Sentinel Security Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -312,7 +312,7 @@ export const TWO_FACTOR_AUTH_TEMPLATE = `<!DOCTYPE html>
     <p>Enter this code on the verification page to complete your login.</p>
     <p>This code will expire in 5 minutes for security reasons.</p>
     <p>If you didn't attempt to log in, please contact our support team immediately.</p>
-    <p>Best regards,<br>The Auth App Security Team</p>
+    <p>Best regards,<br>The Pattern Sentinel Security Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -382,7 +382,7 @@ export const SUSPICIOUS_TRANSACTION_ALERT_TEMPLATE = `<!DOCTYPE html>
     </ul>
 
     <p>Thank you for helping us keep your account secure!</p>
-    <p>Best regards,<br>The Auth App Security Team</p>
+    <p>Best regards,<br>The Pattern Sentinel Security Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
@@ -427,7 +427,7 @@ export const TRANSACTION_VERIFICATION_TEMPLATE = `<!DOCTYPE html>
     <p>Enter this code on the verification page to complete your transaction.</p>
     <p>This code will expire in 5 minutes for security reasons.</p>
     <p>If you didn't attempt this transaction, please contact our support team immediately.</p>
-    <p>Best regards,<br>The Auth App Security Team</p>
+    <p>Best regards,<br>The Pattern Sentinel Security Team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
