@@ -8,7 +8,7 @@ export default function MouseTracker() {
   const lastCaptureTime = useRef(0);
 
   // Change this value to adjust upload interval (in ms)
-  const UPLOAD_INTERVAL_MS = 10000; // 10 seconds
+  const UPLOAD_INTERVAL_MS = 60000; // 10 seconds
 
   useEffect(() => {
     const sessionId = `${sessionStart.current.toString(36)}${Math.floor(Math.random() * 10)}`;
@@ -27,7 +27,6 @@ export default function MouseTracker() {
     const uploadInterval = setInterval(async () => {
       if (movementBuffer.current.length > 0) {
         const events = [...movementBuffer.current];
-        const events = [...movementBuffer.current];
         movementBuffer.current = [];
 
         // Send to analysis backend
@@ -44,7 +43,10 @@ export default function MouseTracker() {
           console.log("Anomaly Score:", anomaly_score);
           if (is_anomaly) {
             console.warn("⚠ Suspicious cursor behavior detected!");
-            toast.warning("Suspicious cursor behavior detected!");
+            toast("Suspicious cursor behavior detected!", {
+              icon: "⚠",
+              style: { background: "#fffbe6", color: "#ad6800" },
+            });
           }
         } catch (err) {
           console.error("Error analyzing mouse movement:", err);
