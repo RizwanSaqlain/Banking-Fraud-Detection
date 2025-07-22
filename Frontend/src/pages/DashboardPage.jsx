@@ -5,7 +5,7 @@ import { formatDate } from "../utils/date";
 import { toast } from "react-hot-toast";
 import ContextStatus from "../components/ContextStatus";
 import useContextData from "../hooks/useContextData";
-import { ContextLogTable, Navbar } from "../components";
+import { ContextLogTable, ServiceRequestList } from "../components";
 import { 
   User, 
   Mail, 
@@ -193,6 +193,9 @@ const DashboardPage = () => {
                   </Link>
                 </div>
               </motion.div>
+
+              {/* Service Request List */}
+              <ServiceRequestList />
 
               {/* Danger Zone */}
               <motion.div
