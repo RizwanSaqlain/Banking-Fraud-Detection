@@ -4,29 +4,44 @@ import joblib
 from flask_cors import CORS
 
 def extract_features(df):
+    if len(df) < 2:
+        # Not enough data to compute velocity/acceleration
+        return pd.DataFrame([{
+            'mean_velocity': 0,
+            'std_velocity': 0,
+            'mean_acceleration': 0,
+            'std_acceleration': 0,
+            'total_duration': df['time_ms'].iloc[-1] if len(df) > 0 else 0,
+            'num_points': len(df)
+        }])
+
     x = df['x'].values
     y = df['y'].values
     t = df['time_ms'].values
 
     dx = pd.Series(x).diff().fillna(0)
     dy = pd.Series(y).diff().fillna(0)
-    dt = pd.Series(t).diff().fillna(1)
+    dt = pd.Series(t).diff().replace(0, 1).fillna(1)  # Avoid division by zero
 
     velocity = ((dx ** 2 + dy ** 2) ** 0.5) / dt
     acceleration = velocity.diff().fillna(0) / dt
+
+    # Replace any NaN values with 0 before calculating stats
+    velocity = velocity.replace([float('inf'), float('-inf')], 0).fillna(0)
+    acceleration = acceleration.replace([float('inf'), float('-inf')], 0).fillna(0)
 
     features = {
         'mean_velocity': velocity.mean(),
         'std_velocity': velocity.std(),
         'mean_acceleration': acceleration.mean(),
         'std_acceleration': acceleration.std(),
-        'total_duration': df['time_ms'].iloc[-1] if len(df) > 1 else 0,
+        'total_duration': df['time_ms'].iloc[-1],
         'num_points': len(df)
     }
     return pd.DataFrame([features])
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
 # Load Isolation Forest model
 model = joblib.load('isolation_forest.pkl')
@@ -37,7 +52,7 @@ fraudModel = joblib.load("RandomForestFraudModel2.pkl")
 def analyze_mouse():
     try:
         movements = request.get_json()
-
+        
         if not movements or not isinstance(movements, list):
             return jsonify({'error': 'Invalid or empty movement data'}), 400
 
